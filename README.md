@@ -14,6 +14,8 @@ To install the module, use pip:
 
 Add 'caretaker' to your installed apps in your Django settings file.
 
+Add 'path('caretaker/', include('caretaker.urls')),' to your urls.py file to enable the /caretaker/list view.
+
 ## Setup and Configuration
 ### Configure an AWS S3 Bucket and IAM User for Backup
 Next, ensure that you have a working AWS cli client and configure it if not.
