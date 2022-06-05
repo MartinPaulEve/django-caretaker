@@ -1,0 +1,5 @@
+include LICENSE
+include README.md
+recursive-include caretaker/terraform *
+recursive-include caretaker/templates *
+recursive-include caretaker/docs *
