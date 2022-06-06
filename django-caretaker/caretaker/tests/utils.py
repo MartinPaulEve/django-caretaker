@@ -5,7 +5,7 @@ from pathlib import Path
 import boto3
 
 from caretaker.main_utils import log
-from push_backup import Command as PushCommand
+from caretaker.management.commands.push_backup import Command as PushCommand
 
 DEV_NULL = open(os.devnull, "w")
 

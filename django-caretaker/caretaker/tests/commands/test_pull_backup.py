@@ -4,9 +4,9 @@ from pathlib import Path
 from django.test import TestCase
 from moto import mock_s3
 
-from list_backups import Command as ListCommand
-from pull_backup import Command as PullCommand
-from tests.utils import setup_bucket, upload_temporary_file, \
+from caretaker.management.commands.list_backups import Command as ListCommand
+from caretaker.management.commands.pull_backup import Command as PullCommand
+from caretaker.tests.utils import setup_bucket, upload_temporary_file, \
     file_in_zip
 from caretaker.main_utils.zip import create_zip_file
 

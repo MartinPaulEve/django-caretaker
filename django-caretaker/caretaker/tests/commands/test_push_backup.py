@@ -3,7 +3,7 @@ import tempfile
 from django.test import TestCase
 from moto import mock_s3
 
-from tests.utils import setup_bucket, upload_temporary_file
+from caretaker.tests.utils import setup_bucket, upload_temporary_file
 
 
 @mock_s3

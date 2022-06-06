@@ -1,11 +1,12 @@
 import tempfile
 from pathlib import Path
 
+import django
 from django.test import TestCase
 from moto import mock_s3
 
-from create_backup import Command as CreateCommand
-from tests.utils import setup_bucket, upload_temporary_file
+from caretaker.management.commands.create_backup import Command as CreateCommand
+from caretaker.tests.utils import setup_bucket, upload_temporary_file
 
 
 @mock_s3
@@ -16,6 +17,8 @@ class TestCreateBackup(TestCase):
         self.logger.info('Setup for create_backup')
 
         self.create_command = CreateCommand()
+
+        django.setup()
 
     def tearDown(self):
         self.logger.info('Teardown for create_backup')

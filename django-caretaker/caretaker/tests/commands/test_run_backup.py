@@ -2,13 +2,15 @@ import json
 import tempfile
 from pathlib import Path
 
+import django
 from django.test import TestCase
 from moto import mock_s3
 
-from list_backups import Command as ListCommand
-from pull_backup import Command as PullCommand
-from run_backup import Command as RunCommand
-from tests.utils import setup_bucket, upload_temporary_file, file_in_zip
+from caretaker.management.commands.list_backups import Command as ListCommand
+from caretaker.management.commands.pull_backup import Command as PullCommand
+from caretaker.management.commands.run_backup import Command as RunCommand
+from caretaker.tests.utils import setup_bucket, upload_temporary_file, \
+    file_in_zip
 
 
 @mock_s3
@@ -21,6 +23,8 @@ class TestRunBackup(TestCase):
         self.run_command = RunCommand()
         self.pull_command = PullCommand()
         self.list_command = ListCommand()
+
+        django.setup()
 
     def tearDown(self):
         self.logger.info('Teardown for run_backup')

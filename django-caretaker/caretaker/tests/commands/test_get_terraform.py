@@ -4,8 +4,9 @@ from pathlib import Path
 from django.test import TestCase
 from moto import mock_s3
 
-from get_terraform import Command as TerraformCommand
-from tests.utils import setup_bucket
+from caretaker.management.commands.get_terraform import Command as \
+    TerraformCommand
+from caretaker.tests.utils import setup_bucket
 
 
 @mock_s3
