@@ -24,6 +24,7 @@ Set the BACKUP_BUCKET variable in your settings.py file. This must be a globally
 
     BACKUP_BUCKET = 'caretakertestbackup'
     MEDIA_ROOT = '/var/www/media'
+    ADDITIONAL_BACKUP_PATHS = ['/home/user/path1', '/home/user/path2']
 
 Generate and run Terraform configuration in your home directory:
 

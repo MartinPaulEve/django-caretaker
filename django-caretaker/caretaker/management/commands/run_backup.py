@@ -18,6 +18,8 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--output-directory')
+        parser.add_argument('-a', '--additional-files',
+                            action='append', required=False)
 
     def handle(self, *args, **options):
         """
@@ -27,8 +29,10 @@ class Command(BaseCommand):
                           aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                           aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
 
-        self._run_backup(options.get('output_directory'), s3_client=s3,
-                         bucket_name=settings.BACKUP_BUCKET)
+        self._run_backup(output_directory=options.get('output_directory'),
+                         s3_client=s3,
+                         bucket_name=settings.BACKUP_BUCKET,
+                         path_list=options.get('additional_files'))
 
     @staticmethod
     def _run_backup(output_directory, data_file='data.json',
