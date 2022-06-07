@@ -18,13 +18,16 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--output-directory')
+        parser.add_argument('-a', '--additional-files',
+                            action='append', required=False)
 
     def handle(self, *args, **options):
         """
         Creates a local backup set
         """
 
-        self._create_backup(options.get('output_directory'))
+        self._create_backup(output_directory=options.get('output_directory'),
+                            path_list=options.get('additional_files'))
 
     @staticmethod
     def _create_backup(output_directory, data_file='data.json',
@@ -54,8 +57,15 @@ class Command(BaseCommand):
         path_list = [] if not path_list else path_list
         path_list = list(set(path_list))
 
-        if settings.MEDIA_ROOT and settings.MEDIA_ROOT not in path_list:
+        if hasattr(settings, 'MEDIA_ROOT') and \
+                settings.MEDIA_ROOT and settings.MEDIA_ROOT not in path_list:
             path_list.append(settings.MEDIA_ROOT)
+
+        if hasattr(settings, 'ADDITIONAL_BACKUP_PATHS') \
+                and settings.ADDITIONAL_BACKUP_PATHS \
+                and settings.ADDITIONAL_BACKUP_PATHS not in path_list:
+
+            path_list.extend(settings.ADDITIONAL_BACKUP_PATHS)
 
         path_list_final = [Path(path).expanduser().resolve(strict=True)
                            for path in path_list]
