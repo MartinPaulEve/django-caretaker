@@ -1,21 +1,18 @@
-import io
-
-import boto3
 import humanize
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import StreamingHttpResponse
+from django.http import StreamingHttpResponse, HttpRequest, HttpResponse
 from django.shortcuts import render
+
+from caretaker.backend.abstract_backend import BackendFactory, AbstractBackend
 
 
 @staff_member_required
-def list_backups(request):
-    s3 = boto3.client('s3',
-                      aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+def list_backups(request: HttpRequest) -> HttpResponse:
+    backend = BackendFactory.get_backend()
 
-    sql_versions = fetch_versions(s3, 'data.json')
-    data_versions = fetch_versions(s3, 'media.zip')
+    sql_versions = fetch_versions(backend, 'data.json')
+    data_versions = fetch_versions(backend, 'media.zip')
 
     template = 'backup_list.html'
 
@@ -31,21 +28,18 @@ def list_backups(request):
 
 
 @staff_member_required
-def download_backup(request, backup_type, version_id):
-    s3 = boto3.client('s3',
-                      aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+def download_backup(request: HttpRequest, backup_type: str, version_id: str) \
+        -> StreamingHttpResponse:
+    backend = BackendFactory.get_backend()
 
     if backup_type == 'sql':
         key = 'data.json'
     else:
         key = 'media.zip'
 
-    response_object = io.BytesIO()
-    s3.download_fileobj(Bucket=settings.CARETAKER_BACKUP_BUCKET, Key=key,
-                        Fileobj=response_object,
-                        ExtraArgs={'VersionId': version_id})
-    response_object.seek(0)
+    response_object = backend.get_object(
+        bucket_name=settings.CARETAKER_BACKUP_BUCKET,
+        remote_key=key, version_id=version_id)
 
     resp = StreamingHttpResponse(streaming_content=response_object)
     resp['Content-Disposition'] = 'attachment; ' \
@@ -54,15 +48,16 @@ def download_backup(request, backup_type, version_id):
     return resp
 
 
-def fetch_versions(s3, key):
-    versions = s3.list_object_versions(
-        Bucket=settings.CARETAKER_BACKUP_BUCKET, Prefix=key)
+def fetch_versions(backend: AbstractBackend, key) -> list[dict]:
+    versions = backend.versions(
+        bucket_name=settings.CARETAKER_BACKUP_BUCKET,
+        remote_key=key)
 
     sql_versions = []
 
-    for item in versions['Versions']:
-        sql_versions.append({'lastmodified': item['LastModified'],
-                             'versionid': item['VersionId'],
-                             'size': humanize.naturalsize(item['Size'])})
+    for item in versions:
+        sql_versions.append({'lastmodified': item['last_modified'],
+                             'versionid': item['version_id'],
+                             'size': humanize.naturalsize(item['size'])})
 
     return sql_versions

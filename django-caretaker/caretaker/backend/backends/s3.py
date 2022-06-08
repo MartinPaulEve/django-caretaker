@@ -1,4 +1,5 @@
 import filecmp
+import io
 import logging
 import tempfile
 from pathlib import Path
@@ -94,17 +95,23 @@ class S3Backend(AbstractBackend):
         return StoreOutcome.STORED
 
     def get_object(self, bucket_name: str, remote_key: str,
-                   version_id: str) -> bytes | None:
+                   version_id: str) -> io.BytesIO | None:
         try:
-            result = self.s3.get_object(Bucket=bucket_name, Key=remote_key,
-                                        VersionId=version_id)
-
             self.logger.info('Fetching version {} of {}'.format(
                 version_id,
                 remote_key
             ))
 
-            return result['Body'].read()
+            response_object = io.BytesIO()
+
+            self.s3.download_fileobj(Bucket=settings.CARETAKER_BACKUP_BUCKET,
+                                     Key=remote_key,
+                                     Fileobj=response_object,
+                                     ExtraArgs={'VersionId': version_id})
+
+            response_object.seek(0)
+
+            return response_object
 
         except botocore.exceptions.ClientError:
             self.logger.error('Unable to download version {} of '
