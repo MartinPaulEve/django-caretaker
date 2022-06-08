@@ -3,6 +3,8 @@ import tempfile
 import boto3
 from django.conf import settings
 from django.core.management.base import BaseCommand
+
+from caretaker.backend.abstract_backend import BackendFactory
 from caretaker.management.commands.create_backup import Command as CreateCommand
 from caretaker.management.commands.push_backup import Command as PushCommand
 
@@ -25,22 +27,24 @@ class Command(BaseCommand):
         """
         Creates a backup set and pushes it to S3
         """
-        s3 = boto3.client('s3',
-                          aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+
+        backend = BackendFactory.get_backend()
+
+        if not backend:
+            logger = log.get_logger('caretaker')
+            logger.error('Unable to find a valid backend.')
+            return
 
         self._run_backup(output_directory=options.get('output_directory'),
-                         s3_client=s3,
+                         backend=backend,
                          bucket_name=settings.CARETAKER_BACKUP_BUCKET,
                          path_list=options.get('additional_files'))
 
     @staticmethod
     def _run_backup(output_directory, data_file='data.json',
                     archive_file='media.zip', path_list=None,
-                    s3_client=None, bucket_name=None):
+                    backend=None, bucket_name=None):
         logger = log.get_logger('caretaker')
-
-        s3 = s3_client
 
         if not path_list:
             path_list = []
@@ -63,10 +67,10 @@ class Command(BaseCommand):
             push_command = PushCommand()
             push_command._push_backup(backup_local_file=json_file,
                                       remote_key=data_file,
-                                      s3_client=s3, bucket_name=bucket_name)
+                                      backend=backend, bucket_name=bucket_name)
             push_command._push_backup(backup_local_file=zip_file,
                                       remote_key=archive_file,
-                                      s3_client=s3, bucket_name=bucket_name)
+                                      backend=backend, bucket_name=bucket_name)
 
             logger.info('Pushed backups to remote store')
             return json_file, archive_file

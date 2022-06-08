@@ -4,13 +4,14 @@ from pathlib import Path
 
 import boto3
 
+from caretaker.backend.abstract_backend import BackendFactory
 from caretaker.main_utils import log
 from caretaker.management.commands.push_backup import Command as PushCommand
 
 DEV_NULL = open(os.devnull, "w")
 
 
-def setup_bucket(test_class):
+def setup_test_class_s3(test_class):
     """
     Generic class to set up tests that require push functionality
     :param test_class: the class to mutate
@@ -41,6 +42,8 @@ def setup_bucket(test_class):
         }
     )
 
+    test_class.backend = BackendFactory.get_backend('Amazon S3')
+
     return test_class
 
 
@@ -53,7 +56,7 @@ def upload_temporary_file(test_class, temporary_directory_name, contents):
     # run the first time to store the result
     result = test_class.command._push_backup(
         backup_local_file=temporary_file, remote_key=test_class.json_key,
-        s3_client=test_class.client, bucket_name=test_class.bucket_name)
+        backend=test_class.backend, bucket_name=test_class.bucket_name)
 
     return result, temporary_file
 

@@ -5,19 +5,17 @@ from moto import mock_s3
 
 from caretaker.backend.abstract_backend import BackendFactory
 from caretaker.management.commands.list_backups import Command as ListCommand
-from caretaker.tests.utils import setup_bucket, upload_temporary_file
+from caretaker.tests.utils import setup_test_class_s3, upload_temporary_file
 
 
 @mock_s3
 class TestListBackups(TestCase):
     def setUp(self):
-        setup_bucket(self)
+        setup_test_class_s3(self)
 
         self.logger.info('Setup list_backups S3')
 
         self.list_command = ListCommand()
-
-        self.backend = BackendFactory.get_backend('Amazon S3')
 
     def tearDown(self):
         self.logger.info('Teardown list_backups S3')
@@ -78,7 +76,7 @@ class TestListBackups(TestCase):
             # the latest version is the same
             self.command._push_backup(
                 backup_local_file=temporary_file, remote_key=self.json_key,
-                s3_client=self.client, bucket_name=self.bucket_name)
+                backend=self.backend, bucket_name=self.bucket_name)
 
             result = self.list_command._list_backups(
                 remote_key=self.json_key, bucket_name=self.bucket_name,

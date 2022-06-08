@@ -1,12 +1,9 @@
-import filecmp
-import tempfile
 from pathlib import Path
 
-import boto3
-from botocore.exceptions import ClientError
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
+from caretaker.backend.abstract_backend import BackendFactory, StoreOutcome
 from caretaker.main_utils import log
 
 
@@ -31,51 +28,38 @@ class Command(BaseCommand):
         """
         Pushes the backup to S3
         """
-        s3 = boto3.client('s3',
-                          aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+
+        backend = BackendFactory.get_backend()
+
+        if not backend:
+            logger = log.get_logger('caretaker')
+            logger.error('Unable to find a valid backend.')
+            return
 
         self._push_backup(backup_local_file=options.get('backup_local_file'),
                           remote_key=options.get('remote_key'),
-                          s3_client=s3,
+                          backend=backend,
                           bucket_name=settings.CARETAKER_BACKUP_BUCKET)
 
-    def _push_backup(self, backup_local_file, remote_key, s3_client,
+    @staticmethod
+    def _push_backup(backup_local_file, remote_key, backend,
                      bucket_name):
+
         logger = log.get_logger('caretaker')
 
         backup_local_file = Path(backup_local_file).expanduser()
 
-        s3 = s3_client
+        result = backend.store_object(remote_key=remote_key,
+                                      bucket_name=bucket_name,
+                                      local_file=backup_local_file,
+                                      check_identical=True)
 
-        # download the latest version of the backup to see if it's the same
-        # as the local file
-        try:
-            with tempfile.TemporaryDirectory() as tmp:
-                path = Path(tmp) / 'latest'
+        match result:
+            case StoreOutcome.STORED:
+                logger.info('Stored backup.')
+            case StoreOutcome.FAILED:
+                logger.info('Failed to store backup.')
+            case StoreOutcome.IDENTICAL:
+                logger.info('Last version was identical.')
 
-                s3.download_file(Filename=str(path), Bucket=bucket_name,
-                                 Key=remote_key)
-
-                if filecmp.cmp(path, backup_local_file):
-                    logger.info('Latest backup is equal to remote S3 version')
-                    return self.returns[2]
-
-        except ClientError:
-            logger.error('There was a problem comparing the previous version '
-                         'of this log with the stored version. This is not '
-                         'a fatal error.')
-            pass
-
-        try:
-            # upload the latest version to S3
-            s3.upload_file(Filename=str(backup_local_file),
-                           Bucket=bucket_name, Key=remote_key)
-
-            logger.info('Backup {} stored as {}'.format(
-                backup_local_file, remote_key))
-        except ClientError:
-            logger.error('There was a problem storing the backup.')
-            return self.returns[0]
-
-        return self.returns[1]
+        return result

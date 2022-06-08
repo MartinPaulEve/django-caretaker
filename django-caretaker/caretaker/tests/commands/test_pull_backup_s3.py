@@ -4,25 +4,23 @@ from pathlib import Path
 from django.test import TestCase
 from moto import mock_s3
 
-from caretaker.backend.abstract_backend import BackendFactory
+from caretaker.backend.abstract_backend import StoreOutcome
+from caretaker.main_utils.zip import create_zip_file
 from caretaker.management.commands.list_backups import Command as ListCommand
 from caretaker.management.commands.pull_backup import Command as PullCommand
-from caretaker.tests.utils import setup_bucket, upload_temporary_file, \
+from caretaker.tests.utils import setup_test_class_s3, upload_temporary_file, \
     file_in_zip
-from caretaker.main_utils.zip import create_zip_file
 
 
 @mock_s3
 class TestPullBackup(TestCase):
     def setUp(self):
-        setup_bucket(self)
+        setup_test_class_s3(self)
 
         self.logger.info('Setup for pull_backup S3')
 
         self.pull_command = PullCommand()
         self.list_command = ListCommand()
-
-        self.backend = BackendFactory.get_backend('Amazon S3')
 
     def tearDown(self):
         self.logger.info('Teardown for pull_backup S3')
@@ -41,7 +39,7 @@ class TestPullBackup(TestCase):
                 temporary_directory_name=temporary_directory_name,
                 contents=self.test_contents)
 
-            self.assertTrue(result == self.command.returns[1])
+            self.assertTrue(result == StoreOutcome.STORED)
 
             # list the results to get a versionId
             result = self.list_command._list_backups(
@@ -80,7 +78,7 @@ class TestPullBackup(TestCase):
             # upload the file
             self.command._push_backup(
                 backup_local_file=zip_file, remote_key=self.data_key,
-                s3_client=self.client, bucket_name=self.bucket_name)
+                backend=self.backend, bucket_name=self.bucket_name)
 
             # delete the zip file locally
             zip_file.unlink(missing_ok=True)

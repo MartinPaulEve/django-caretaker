@@ -6,13 +6,13 @@ from moto import mock_s3
 
 from caretaker.management.commands.get_terraform import Command as \
     TerraformCommand
-from caretaker.tests.utils import setup_bucket
+from caretaker.tests.utils import setup_test_class_s3
 
 
 @mock_s3
 class TestTerraformOutput(TestCase):
     def setUp(self):
-        setup_bucket(self)
+        setup_test_class_s3(self)
 
         self.logger.info('Setup for Terraform test')
 

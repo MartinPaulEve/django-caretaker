@@ -6,26 +6,24 @@ import django
 from django.test import TestCase
 from moto import mock_s3
 
-from caretaker.backend.abstract_backend import BackendFactory
+from caretaker.backend.abstract_backend import BackendFactory, StoreOutcome
 from caretaker.management.commands.list_backups import Command as ListCommand
 from caretaker.management.commands.pull_backup import Command as PullCommand
 from caretaker.management.commands.run_backup import Command as RunCommand
-from caretaker.tests.utils import setup_bucket, upload_temporary_file, \
+from caretaker.tests.utils import setup_test_class_s3, upload_temporary_file, \
     file_in_zip
 
 
 @mock_s3
 class TestRunBackup(TestCase):
     def setUp(self):
-        setup_bucket(self)
+        setup_test_class_s3(self)
 
         self.logger.info('Setup for run_backup S3')
 
         self.run_command = RunCommand()
         self.pull_command = PullCommand()
         self.list_command = ListCommand()
-
-        self.backend = BackendFactory.get_backend('Amazon S3')
 
         django.setup()
 
@@ -46,14 +44,14 @@ class TestRunBackup(TestCase):
                 temporary_directory_name=temporary_directory_name,
                 contents=self.test_contents)
 
-            self.assertTrue(result == self.command.returns[1])
+            self.assertTrue(result == StoreOutcome.STORED)
 
             # create a backup record including this directory
             self.run_command._run_backup(
                 output_directory=temporary_directory_name,
                 path_list=[temporary_directory_name],
                 bucket_name=self.bucket_name,
-                s3_client=self.client
+                backend=self.backend
             )
 
             # now check that the files exist in S3
