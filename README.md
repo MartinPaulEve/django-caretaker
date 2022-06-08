@@ -24,7 +24,11 @@ Set the BACKUP_BUCKET variable in your settings.py file. This must be a globally
 
     CARETAKER_BACKUP_BUCKET = 'caretakertestbackup'
     CARETAKER_ADDITIONAL_BACKUP_PATHS = ['/home/user/path1', '/home/user/path2']
+    CARETAKER_BACKEND = 'Amazon S3'
+    CARETAKER_BACKENDS = ['caretaker.backend.backends.s3']
     MEDIA_ROOT = '/var/www/media'
+
+The CARETAKER_BACKENDS list allows you to specify the available backends. The CARETAKER_BACKEND variable selects the backend to use (there is only S3 at the moment).
 
 Generate and run Terraform configuration in your home directory:
 
