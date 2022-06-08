@@ -129,5 +129,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AWS_ACCESS_KEY_ID = 'DEFAULT'
 AWS_SECRET_ACCESS_KEY = 'DEFAULT'
 AWS_DEFAULT_REGION = 'eu-west-2'
-BACKUP_BUCKET = 'caretakertestbackup'
 
+CARETAKER_BACKUP_BUCKET = 'caretakertestbackup'
+CARETAKER_BACKEND = 'Amazon S3'
+CARETAKER_BACKENDS = ['caretaker.backend.backends.s3']

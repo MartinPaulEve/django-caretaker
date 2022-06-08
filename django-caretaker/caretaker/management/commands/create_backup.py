@@ -26,12 +26,12 @@ class Command(BaseCommand):
         Creates a local backup set
         """
 
-        self._create_backup(output_directory=options.get('output_directory'),
-                            path_list=options.get('additional_files'))
+        self.create_backup(output_directory=options.get('output_directory'),
+                           path_list=options.get('additional_files'))
 
     @staticmethod
-    def _create_backup(output_directory, data_file='data.json',
-                       archive_file='media.zip', path_list=None):
+    def create_backup(output_directory, data_file='data.json',
+                      archive_file='media.zip', path_list=None):
         logger = log.get_logger('caretaker')
 
         if not output_directory:

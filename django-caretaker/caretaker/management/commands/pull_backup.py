@@ -1,10 +1,8 @@
-from pathlib import Path
-
-import boto3
 from botocore.exceptions import ClientError
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
+from caretaker.backend.abstract_backend import BackendFactory
 from caretaker.main_utils import log
 
 
@@ -13,7 +11,7 @@ class Command(BaseCommand):
     Installs cron tasks.
     """
 
-    help = "Pulls a specific backup from the S3 store"
+    help = "Pulls a specific backup from the remote store"
 
     def add_arguments(self, parser):
         parser.add_argument('--backup-version')
@@ -25,43 +23,40 @@ class Command(BaseCommand):
         """
         Pulls a backup from S3
         """
-        s3 = boto3.client('s3',
-                          aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+        backend = BackendFactory.get_backend()
 
-        self._pull_backup(out_file=options.get('backup_local_file'),
-                          remote_key=options.get('remote_key'),
-                          s3_client=s3, bucket_name=settings.CARETAKER_BACKUP_BUCKET,
-                          backup_version=options.get('backup_version'))
+        if not backend:
+            logger = log.get_logger('caretaker')
+            logger.error('Unable to find a valid backend.')
+            return
+
+        self.pull_backup(out_file=options.get('backup_local_file'),
+                         remote_key=options.get('remote_key'),
+                         backend=backend,
+                         bucket_name=settings.CARETAKER_BACKUP_BUCKET,
+                         backup_version=options.get('backup_version'))
 
     @staticmethod
-    def _pull_backup(backup_version, out_file, remote_key, s3_client,
-                     bucket_name):
+    def pull_backup(backup_version, out_file, remote_key, backend,
+                    bucket_name):
         logger = log.get_logger('caretaker')
 
-        s3 = s3_client
-
-        out_file = Path(out_file).expanduser()
+        download = backend.download_object(local_file=out_file,
+                                           remote_key=remote_key,
+                                           version_id=backup_version,
+                                           bucket_name=bucket_name)
 
         try:
-            s3.download_file(
-                Filename=str(out_file),
-                Bucket=bucket_name,
-                Key=remote_key,
-                ExtraArgs={'VersionId': backup_version}
-            )
+            if download:
 
-            logger.info('Saved version {} of {} to {}'.format(
-                backup_version,
-                remote_key,
-                out_file
-            ))
-
-            return out_file
+                return out_file
+            else:
+                raise ClientError
         except ClientError:
             logger.error('Unable to download version {} of {} to {}'.format(
                 backup_version,
                 remote_key,
                 out_file
             ))
+
             return None

@@ -31,7 +31,7 @@ class Command(BaseCommand):
                 out_file.write(rendered)
 
     @staticmethod
-    def _generate_terraform(output_directory):
+    def generate_terraform(output_directory):
         logger = log.get_logger('caretaker')
         output_directory = Path(output_directory).expanduser()
 
@@ -58,4 +58,4 @@ class Command(BaseCommand):
         """
         Produces a Terraform setup configuration
         """
-        self._generate_terraform(options.get('output_directory'))
+        self.generate_terraform(options.get('output_directory'))

@@ -5,14 +5,15 @@ import django
 from django.test import TestCase
 from moto import mock_s3
 
+from caretaker.backend.abstract_backend import StoreOutcome
 from caretaker.management.commands.create_backup import Command as CreateCommand
-from caretaker.tests.utils import setup_bucket, upload_temporary_file
+from caretaker.tests.utils import setup_test_class_s3, upload_temporary_file
 
 
 @mock_s3
 class TestCreateBackup(TestCase):
     def setUp(self):
-        setup_bucket(self)
+        setup_test_class_s3(self)
 
         self.logger.info('Setup for create_backup')
 
@@ -37,10 +38,10 @@ class TestCreateBackup(TestCase):
                 temporary_directory_name=temporary_directory_name,
                 contents=self.test_contents)
 
-            self.assertTrue(result == self.command.returns[1])
+            self.assertTrue(result == StoreOutcome.STORED)
 
             # create a backup record including this directory
-            json_file, data_file = self.create_command._create_backup(
+            json_file, data_file = self.create_command.create_backup(
                 output_directory=temporary_directory_name,
                 path_list=[temporary_directory_name]
             )

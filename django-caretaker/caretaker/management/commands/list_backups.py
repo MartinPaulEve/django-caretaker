@@ -1,7 +1,8 @@
-import boto3
 import humanize
 from django.conf import settings
 from django.core.management.base import BaseCommand
+
+from caretaker.backend.abstract_backend import BackendFactory
 from caretaker.main_utils import log
 
 
@@ -19,30 +20,29 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """Lists available backups"""
 
-        s3 = boto3.client('s3',
-                          aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+        backend = BackendFactory.get_backend()
 
-        self._list_backups(s3_client=s3, remote_key=options.get('remote_key'),
-                           bucket_name=settings.CARETAKER_BACKUP_BUCKET)
+        if not backend:
+            logger = log.get_logger('caretaker')
+            logger.error('Unable to find a valid backend.')
+            return
+
+        self.list_backups(backend=backend,
+                          remote_key=options.get('remote_key'),
+                          bucket_name=settings.CARETAKER_BACKUP_BUCKET)
 
     @staticmethod
-    def _list_backups(remote_key, s3_client, bucket_name):
+    def list_backups(remote_key, backend, bucket_name) -> list[dict]:
         logger = log.get_logger('caretaker')
 
-        s3 = s3_client
+        results = backend.versions(remote_key=remote_key,
+                                   bucket_name=bucket_name)
 
-        versions = s3.list_object_versions(Bucket=bucket_name,
-                                           Prefix=remote_key)
+        for item in results:
+            logger.info('Backup from {}: {} [{}]'.format(
+                item['last_modified'],
+                item['version_id'],
+                humanize.naturalsize(item['size'])
+            ))
 
-        if versions and 'Versions' in versions:
-            for item in versions['Versions']:
-                logger.info('Backup from {}: {} [{}]'.format(
-                    item['LastModified'],
-                    item['VersionId'],
-                    humanize.naturalsize(item['Size'])
-                ))
-
-            return versions['Versions']
-
-        return None
+        return results
