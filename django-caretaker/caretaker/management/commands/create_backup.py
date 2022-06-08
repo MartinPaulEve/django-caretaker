@@ -5,8 +5,8 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
-from caretaker.main_utils import log
-from caretaker.main_utils.zip import create_zip_file
+from caretaker.utils import log, file
+from caretaker.utils.zip import create_zip_file
 
 
 class Command(BaseCommand):
@@ -30,15 +30,17 @@ class Command(BaseCommand):
                            path_list=options.get('additional_files'))
 
     @staticmethod
-    def create_backup(output_directory, data_file='data.json',
-                      archive_file='media.zip', path_list=None):
+    def create_backup(output_directory: str, data_file: str = 'data.json',
+                      archive_file: str = 'media.zip',
+                      path_list: list | None = None) -> (Path | None,
+                                                         Path | None):
         logger = log.get_logger('caretaker')
 
         if not output_directory:
             logger.error('No output directory specified')
             return None, None
 
-        output_directory = Path(output_directory).expanduser()
+        output_directory = file.normalize_path(output_directory)
 
         # create the directory if needed
         output_directory.mkdir(parents=True, exist_ok=True)
@@ -64,7 +66,6 @@ class Command(BaseCommand):
         if hasattr(settings, 'ADDITIONAL_BACKUP_PATHS') \
                 and settings.CARETAKER_ADDITIONAL_BACKUP_PATHS \
                 and settings.CARETAKER_ADDITIONAL_BACKUP_PATHS not in path_list:
-
             path_list.extend(settings.CARETAKER_ADDITIONAL_BACKUP_PATHS)
 
         path_list_final = [Path(path).expanduser().resolve(strict=True)

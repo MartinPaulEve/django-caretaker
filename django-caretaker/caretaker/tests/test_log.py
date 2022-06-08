@@ -4,7 +4,7 @@ import django
 from django.test import TestCase
 from testfixtures import log_capture
 
-from caretaker.main_utils import log
+from caretaker.utils import log
 
 
 class LoggerDefaultTestCase(TestCase):

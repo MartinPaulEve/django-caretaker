@@ -1,10 +1,9 @@
-from pathlib import Path
-
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from caretaker.backend.abstract_backend import BackendFactory, StoreOutcome
-from caretaker.main_utils import log
+from caretaker.backend.abstract_backend import BackendFactory, StoreOutcome, \
+    AbstractBackend
+from caretaker.utils import log, file
 
 
 class Command(BaseCommand):
@@ -38,12 +37,12 @@ class Command(BaseCommand):
                          bucket_name=settings.CARETAKER_BACKUP_BUCKET)
 
     @staticmethod
-    def push_backup(backup_local_file, remote_key, backend,
-                    bucket_name):
+    def push_backup(backup_local_file: str, remote_key: str,
+                    backend: AbstractBackend, bucket_name: str) -> StoreOutcome:
 
         logger = log.get_logger('caretaker')
 
-        backup_local_file = Path(backup_local_file).expanduser()
+        backup_local_file = file.normalize_path(backup_local_file)
 
         result = backend.store_object(remote_key=remote_key,
                                       bucket_name=bucket_name,

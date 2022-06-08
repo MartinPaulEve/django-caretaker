@@ -7,7 +7,7 @@ import boto3
 import botocore.exceptions
 from django.conf import settings
 
-from caretaker.main_utils import log
+from caretaker.utils import log
 from caretaker.backend.abstract_backend import AbstractBackend, StoreOutcome
 
 
