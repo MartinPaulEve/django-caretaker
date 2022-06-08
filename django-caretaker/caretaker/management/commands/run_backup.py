@@ -33,15 +33,15 @@ class Command(BaseCommand):
             logger.error('Unable to find a valid backend.')
             return
 
-        self._run_backup(output_directory=options.get('output_directory'),
-                         backend=backend,
-                         bucket_name=settings.CARETAKER_BACKUP_BUCKET,
-                         path_list=options.get('additional_files'))
+        self.run_backup(output_directory=options.get('output_directory'),
+                        backend=backend,
+                        bucket_name=settings.CARETAKER_BACKUP_BUCKET,
+                        path_list=options.get('additional_files'))
 
     @staticmethod
-    def _run_backup(output_directory, data_file='data.json',
-                    archive_file='media.zip', path_list=None,
-                    backend=None, bucket_name=None):
+    def run_backup(output_directory, data_file='data.json',
+                   archive_file='media.zip', path_list=None,
+                   backend=None, bucket_name=None):
         logger = log.get_logger('caretaker')
 
         if not path_list:
@@ -56,19 +56,19 @@ class Command(BaseCommand):
             # create a local backup set in this temporary directory
             create_command = CreateCommand()
 
-            json_file, zip_file = create_command._create_backup(
+            json_file, zip_file = create_command.create_backup(
                 output_directory=temporary_directory_name,
                 path_list=path_list
             )
 
             # push the data
             push_command = PushCommand()
-            push_command._push_backup(backup_local_file=json_file,
-                                      remote_key=data_file,
-                                      backend=backend, bucket_name=bucket_name)
-            push_command._push_backup(backup_local_file=zip_file,
-                                      remote_key=archive_file,
-                                      backend=backend, bucket_name=bucket_name)
+            push_command.push_backup(backup_local_file=json_file,
+                                     remote_key=data_file,
+                                     backend=backend, bucket_name=bucket_name)
+            push_command.push_backup(backup_local_file=zip_file,
+                                     remote_key=archive_file,
+                                     backend=backend, bucket_name=bucket_name)
 
             logger.info('Pushed backups to remote store')
             return json_file, archive_file

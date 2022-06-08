@@ -41,7 +41,7 @@ class TestCreateBackup(TestCase):
             self.assertTrue(result == StoreOutcome.STORED)
 
             # create a backup record including this directory
-            json_file, data_file = self.create_command._create_backup(
+            json_file, data_file = self.create_command.create_backup(
                 output_directory=temporary_directory_name,
                 path_list=[temporary_directory_name]
             )

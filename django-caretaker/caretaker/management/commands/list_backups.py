@@ -27,12 +27,12 @@ class Command(BaseCommand):
             logger.error('Unable to find a valid backend.')
             return
 
-        self._list_backups(backend=backend,
-                           remote_key=options.get('remote_key'),
-                           bucket_name=settings.CARETAKER_BACKUP_BUCKET)
+        self.list_backups(backend=backend,
+                          remote_key=options.get('remote_key'),
+                          bucket_name=settings.CARETAKER_BACKUP_BUCKET)
 
     @staticmethod
-    def _list_backups(remote_key, backend, bucket_name) -> list[dict]:
+    def list_backups(remote_key, backend, bucket_name) -> list[dict]:
         logger = log.get_logger('caretaker')
 
         results = backend.versions(remote_key=remote_key,

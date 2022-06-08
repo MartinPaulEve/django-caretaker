@@ -54,7 +54,7 @@ def upload_temporary_file(test_class, temporary_directory_name, contents):
         out_file.write(contents)
 
     # run the first time to store the result
-    result = test_class.command._push_backup(
+    result = test_class.command.push_backup(
         backup_local_file=temporary_file, remote_key=test_class.json_key,
         backend=test_class.backend, bucket_name=test_class.bucket_name)
 

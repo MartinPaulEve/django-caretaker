@@ -25,7 +25,7 @@ class TestListBackups(TestCase):
         with tempfile.TemporaryDirectory() as temporary_directory_name:
 
             # first test that we get nothing back
-            result = self.list_command._list_backups(
+            result = self.list_command.list_backups(
                 remote_key=self.json_key, bucket_name=self.bucket_name,
                 backend=self.backend
             )
@@ -39,7 +39,7 @@ class TestListBackups(TestCase):
                 contents=self.test_contents)
 
             # Now check that we get a result
-            result = self.list_command._list_backups(
+            result = self.list_command.list_backups(
                 remote_key=self.json_key, bucket_name=self.bucket_name,
                 backend=self.backend
             )
@@ -58,7 +58,7 @@ class TestListBackups(TestCase):
                 contents='test2')
 
             # first test that we get nothing back
-            result = self.list_command._list_backups(
+            result = self.list_command.list_backups(
                 remote_key=self.json_key, bucket_name=self.bucket_name,
                 backend=self.backend
             )
@@ -73,11 +73,11 @@ class TestListBackups(TestCase):
 
             # now run a final time with the same version and check that
             # the latest version is the same
-            self.command._push_backup(
+            self.command.push_backup(
                 backup_local_file=temporary_file, remote_key=self.json_key,
                 backend=self.backend, bucket_name=self.bucket_name)
 
-            result = self.list_command._list_backups(
+            result = self.list_command.list_backups(
                 remote_key=self.json_key, bucket_name=self.bucket_name,
                 backend=self.backend
             )

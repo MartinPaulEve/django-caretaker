@@ -47,7 +47,7 @@ class TestRunBackup(TestCase):
             self.assertTrue(result == StoreOutcome.STORED)
 
             # create a backup record including this directory
-            self.run_command._run_backup(
+            self.run_command.run_backup(
                 output_directory=temporary_directory_name,
                 path_list=[temporary_directory_name],
                 bucket_name=self.bucket_name,
@@ -56,7 +56,7 @@ class TestRunBackup(TestCase):
 
             # now check that the files exist in S3
             # list the results to get a versionId of the SQL backup
-            result = self.list_command._list_backups(
+            result = self.list_command.list_backups(
                 remote_key=self.dump_key, bucket_name=self.bucket_name,
                 backend=self.backend
             )
@@ -65,7 +65,7 @@ class TestRunBackup(TestCase):
                 missing_ok=True)
             download_location = temporary_directory_name / self.json_key
 
-            result = self.pull_command._pull_backup(
+            result = self.pull_command.pull_backup(
                 backup_version=result[0]['version_id'],
                 remote_key=self.dump_key,
                 bucket_name=self.bucket_name,
@@ -82,7 +82,7 @@ class TestRunBackup(TestCase):
                     self.fail('The stored object could not be JSON decoded')
 
             # now check the archive zip
-            result = self.list_command._list_backups(
+            result = self.list_command.list_backups(
                 remote_key=self.data_key, bucket_name=self.bucket_name,
                 backend=self.backend
             )
@@ -91,7 +91,7 @@ class TestRunBackup(TestCase):
                 missing_ok=True)
             download_location = temporary_directory_name / self.data_key
 
-            result = self.pull_command._pull_backup(
+            result = self.pull_command.pull_backup(
                 backup_version=result[0]['version_id'],
                 remote_key=self.data_key,
                 bucket_name=self.bucket_name,

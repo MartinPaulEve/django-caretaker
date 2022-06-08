@@ -25,7 +25,7 @@ class TestTerraformOutput(TestCase):
     def test_terraform(self):
         self.logger.info('Running Terraform test')
         with tempfile.TemporaryDirectory() as temporary_directory_name:
-            self.command._generate_terraform(
+            self.command.generate_terraform(
                 output_directory=temporary_directory_name)
 
             self.assertTrue(

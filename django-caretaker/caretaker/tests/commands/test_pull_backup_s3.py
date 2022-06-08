@@ -42,14 +42,14 @@ class TestPullBackup(TestCase):
             self.assertTrue(result == StoreOutcome.STORED)
 
             # list the results to get a versionId
-            result = self.list_command._list_backups(
+            result = self.list_command.list_backups(
                 remote_key=self.json_key, bucket_name=self.bucket_name,
                 backend=self.backend
             )
 
             download_location = temporary_directory_name / self.json_key
 
-            result = self.pull_command._pull_backup(
+            result = self.pull_command.pull_backup(
                 backup_version=result[0]['version_id'],
                 remote_key=self.json_key,
                 bucket_name=self.bucket_name,
@@ -76,7 +76,7 @@ class TestPullBackup(TestCase):
             self.assertTrue(zip_file.exists())
 
             # upload the file
-            self.command._push_backup(
+            self.command.push_backup(
                 backup_local_file=zip_file, remote_key=self.data_key,
                 backend=self.backend, bucket_name=self.bucket_name)
 
@@ -85,7 +85,7 @@ class TestPullBackup(TestCase):
             self.assertFalse(zip_file.exists())
 
             # list the results to get a versionId
-            result = self.list_command._list_backups(
+            result = self.list_command.list_backups(
                 remote_key=self.data_key, bucket_name=self.bucket_name,
                 backend=self.backend
             )
@@ -93,7 +93,7 @@ class TestPullBackup(TestCase):
             data_download_location = temporary_directory_name / self.json_key
 
             # pull it back down
-            self.pull_command._pull_backup(
+            self.pull_command.pull_backup(
                 backup_version=result[0]['version_id'],
                 remote_key=self.data_key,
                 bucket_name=self.bucket_name,

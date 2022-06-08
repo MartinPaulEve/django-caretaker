@@ -42,7 +42,7 @@ class TestPushBackup(TestCase):
             with temporary_file.open('w') as out_file:
                 out_file.write('test2')
 
-            result = self.command._push_backup(
+            result = self.command.push_backup(
                 backup_local_file=temporary_file, remote_key=self.json_key,
                 backend=self.backend, bucket_name=self.bucket_name)
 

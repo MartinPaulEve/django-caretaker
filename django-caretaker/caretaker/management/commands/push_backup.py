@@ -32,14 +32,14 @@ class Command(BaseCommand):
             logger.error('Unable to find a valid backend.')
             return
 
-        self._push_backup(backup_local_file=options.get('backup_local_file'),
-                          remote_key=options.get('remote_key'),
-                          backend=backend,
-                          bucket_name=settings.CARETAKER_BACKUP_BUCKET)
+        self.push_backup(backup_local_file=options.get('backup_local_file'),
+                         remote_key=options.get('remote_key'),
+                         backend=backend,
+                         bucket_name=settings.CARETAKER_BACKUP_BUCKET)
 
     @staticmethod
-    def _push_backup(backup_local_file, remote_key, backend,
-                     bucket_name):
+    def push_backup(backup_local_file, remote_key, backend,
+                    bucket_name):
 
         logger = log.get_logger('caretaker')
 

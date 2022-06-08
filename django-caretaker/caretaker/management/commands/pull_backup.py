@@ -30,15 +30,15 @@ class Command(BaseCommand):
             logger.error('Unable to find a valid backend.')
             return
 
-        self._pull_backup(out_file=options.get('backup_local_file'),
-                          remote_key=options.get('remote_key'),
-                          backend=backend,
-                          bucket_name=settings.CARETAKER_BACKUP_BUCKET,
-                          backup_version=options.get('backup_version'))
+        self.pull_backup(out_file=options.get('backup_local_file'),
+                         remote_key=options.get('remote_key'),
+                         backend=backend,
+                         bucket_name=settings.CARETAKER_BACKUP_BUCKET,
+                         backup_version=options.get('backup_version'))
 
     @staticmethod
-    def _pull_backup(backup_version, out_file, remote_key, backend,
-                     bucket_name):
+    def pull_backup(backup_version, out_file, remote_key, backend,
+                    bucket_name):
         logger = log.get_logger('caretaker')
 
         download = backend.download_object(local_file=out_file,

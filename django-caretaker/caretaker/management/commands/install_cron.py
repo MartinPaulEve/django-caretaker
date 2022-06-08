@@ -27,12 +27,12 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """Installs Cron jobs
         """
-        self._install_cron(job_name=settings.CARETAKER_BACKUP_BUCKET,
-                           action=options.get('action'),
-                           base_dir=settings.BASE_DIR)
+        self.install_cron(job_name=settings.CARETAKER_BACKUP_BUCKET,
+                          action=options.get('action'),
+                          base_dir=settings.BASE_DIR)
 
     @staticmethod
-    def _install_cron(job_name, action, base_dir):
+    def install_cron(job_name, action, base_dir):
         logger = log.get_logger('caretaker')
         tab = CronTab(user=True)
         virtualenv = os.environ.get('VIRTUAL_ENV', None)
