@@ -1,14 +1,12 @@
 import tempfile
 
-import boto3
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from caretaker.backend.abstract_backend import BackendFactory
+from caretaker.main_utils import log
 from caretaker.management.commands.create_backup import Command as CreateCommand
 from caretaker.management.commands.push_backup import Command as PushCommand
-
-from caretaker.main_utils import log
 
 
 class Command(BaseCommand):

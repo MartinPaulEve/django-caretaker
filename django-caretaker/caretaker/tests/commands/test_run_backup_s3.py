@@ -6,7 +6,7 @@ import django
 from django.test import TestCase
 from moto import mock_s3
 
-from caretaker.backend.abstract_backend import BackendFactory, StoreOutcome
+from caretaker.backend.abstract_backend import StoreOutcome
 from caretaker.management.commands.list_backups import Command as ListCommand
 from caretaker.management.commands.pull_backup import Command as PullCommand
 from caretaker.management.commands.run_backup import Command as RunCommand
@@ -69,7 +69,7 @@ class TestRunBackup(TestCase):
                 backup_version=result[0]['version_id'],
                 remote_key=self.dump_key,
                 bucket_name=self.bucket_name,
-                s3_client=self.client,
+                backend=self.backend,
                 out_file=download_location
             )
 
@@ -95,7 +95,7 @@ class TestRunBackup(TestCase):
                 backup_version=result[0]['version_id'],
                 remote_key=self.data_key,
                 bucket_name=self.bucket_name,
-                s3_client=self.client,
+                backend=self.backend,
                 out_file=download_location
             )
 

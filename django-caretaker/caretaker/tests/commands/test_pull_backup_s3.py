@@ -53,7 +53,7 @@ class TestPullBackup(TestCase):
                 backup_version=result[0]['version_id'],
                 remote_key=self.json_key,
                 bucket_name=self.bucket_name,
-                s3_client=self.client,
+                backend=self.backend,
                 out_file=download_location
             )
 
@@ -97,7 +97,7 @@ class TestPullBackup(TestCase):
                 backup_version=result[0]['version_id'],
                 remote_key=self.data_key,
                 bucket_name=self.bucket_name,
-                s3_client=self.client,
+                backend=self.backend,
                 out_file=data_download_location
             )
 

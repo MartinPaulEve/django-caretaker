@@ -14,10 +14,6 @@ class Command(BaseCommand):
 
     help = "Pushes the backup to the S3 store"
 
-    returns = {0: 'FAILED',
-               1: 'STORED',
-               2: 'IDENTICAL'}
-
     def add_arguments(self, parser):
         parser.add_argument('--backup-local-file',
                             default='~/backup.sql')

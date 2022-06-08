@@ -3,7 +3,6 @@ import tempfile
 from django.test import TestCase
 from moto import mock_s3
 
-from caretaker.backend.abstract_backend import BackendFactory
 from caretaker.management.commands.list_backups import Command as ListCommand
 from caretaker.tests.utils import setup_test_class_s3, upload_temporary_file
 
