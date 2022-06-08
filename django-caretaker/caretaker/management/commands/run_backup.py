@@ -14,7 +14,7 @@ class Command(BaseCommand):
     Installs cron tasks.
     """
 
-    help = "Creates a backup set and pushes it to S3"
+    help = "Creates a backup set and pushes it to the remote store"
 
     def add_arguments(self, parser):
         parser.add_argument('--output-directory')

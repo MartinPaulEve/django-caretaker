@@ -11,7 +11,7 @@ class Command(BaseCommand):
     Installs cron tasks.
     """
 
-    help = "Pulls a specific backup from the S3 store"
+    help = "Pulls a specific backup from the remote store"
 
     def add_arguments(self, parser):
         parser.add_argument('--backup-version')

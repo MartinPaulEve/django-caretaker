@@ -12,7 +12,7 @@ class Command(BaseCommand):
     Installs cron tasks.
     """
 
-    help = "Pushes the backup to the S3 store"
+    help = "Pushes the backup to the remote store"
 
     def add_arguments(self, parser):
         parser.add_argument('--backup-local-file',
