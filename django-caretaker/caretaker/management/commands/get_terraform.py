@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.template import Template, Context
 
-from caretaker.main_utils import log
+from caretaker.utils import log
 
 
 class Command(BaseCommand):

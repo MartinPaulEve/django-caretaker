@@ -5,7 +5,7 @@ from django.test import TestCase
 from moto import mock_s3
 
 from caretaker.backend.abstract_backend import StoreOutcome
-from caretaker.main_utils.zip import create_zip_file
+from caretaker.utils.zip import create_zip_file
 from caretaker.management.commands.list_backups import Command as ListCommand
 from caretaker.management.commands.pull_backup import Command as PullCommand
 from caretaker.tests.utils import setup_test_class_s3, upload_temporary_file, \

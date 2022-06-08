@@ -1,9 +1,12 @@
+from pathlib import Path
+
 from botocore.exceptions import ClientError
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from caretaker.backend.abstract_backend import BackendFactory
-from caretaker.main_utils import log
+import caretaker.utils.file as file
+from caretaker.backend.abstract_backend import BackendFactory, AbstractBackend
+from caretaker.utils import log
 
 
 class Command(BaseCommand):
@@ -37,9 +40,11 @@ class Command(BaseCommand):
                          backup_version=options.get('backup_version'))
 
     @staticmethod
-    def pull_backup(backup_version, out_file, remote_key, backend,
-                    bucket_name):
+    def pull_backup(backup_version: str, out_file: str, remote_key: str,
+                    backend: AbstractBackend, bucket_name: str) -> Path | None:
         logger = log.get_logger('caretaker')
+
+        out_file = file.normalize_path(out_file)
 
         download = backend.download_object(local_file=out_file,
                                            remote_key=remote_key,

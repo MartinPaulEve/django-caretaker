@@ -5,8 +5,8 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
-from caretaker.main_utils import log
-from caretaker.main_utils.zip import create_zip_file
+from caretaker.utils import log
+from caretaker.utils.zip import create_zip_file
 
 
 class Command(BaseCommand):
