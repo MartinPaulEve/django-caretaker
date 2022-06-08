@@ -62,10 +62,10 @@ class Command(BaseCommand):
             path_list.append(settings.MEDIA_ROOT)
 
         if hasattr(settings, 'ADDITIONAL_BACKUP_PATHS') \
-                and settings.ADDITIONAL_BACKUP_PATHS \
-                and settings.ADDITIONAL_BACKUP_PATHS not in path_list:
+                and settings.CARETAKER_ADDITIONAL_BACKUP_PATHS \
+                and settings.CARETAKER_ADDITIONAL_BACKUP_PATHS not in path_list:
 
-            path_list.extend(settings.ADDITIONAL_BACKUP_PATHS)
+            path_list.extend(settings.CARETAKER_ADDITIONAL_BACKUP_PATHS)
 
         path_list_final = [Path(path).expanduser().resolve(strict=True)
                            for path in path_list]

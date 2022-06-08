@@ -42,7 +42,7 @@ def download_backup(request, backup_type, version_id):
         key = 'media.zip'
 
     response_object = io.BytesIO()
-    s3.download_fileobj(Bucket=settings.BACKUP_BUCKET, Key=key,
+    s3.download_fileobj(Bucket=settings.CARETAKER_BACKUP_BUCKET, Key=key,
                         Fileobj=response_object,
                         ExtraArgs={'VersionId': version_id})
     response_object.seek(0)
@@ -56,7 +56,7 @@ def download_backup(request, backup_type, version_id):
 
 def fetch_versions(s3, key):
     versions = s3.list_object_versions(
-        Bucket=settings.BACKUP_BUCKET, Prefix=key)
+        Bucket=settings.CARETAKER_BACKUP_BUCKET, Prefix=key)
 
     sql_versions = []
 

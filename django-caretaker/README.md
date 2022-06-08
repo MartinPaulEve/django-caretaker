@@ -22,9 +22,9 @@ Next, ensure that you have a working AWS cli client and configure it if not.
 
 Set the BACKUP_BUCKET variable in your settings.py file. This must be a globally unique name for the S3 bucket. You should also set the MEDIA_ROOT folder so that we know what to back up:
 
-    BACKUP_BUCKET = 'caretakertestbackup'
+    CARETAKER_BACKUP_BUCKET = 'caretakertestbackup'
+    CARETAKER_ADDITIONAL_BACKUP_PATHS = ['/home/user/path1', '/home/user/path2']
     MEDIA_ROOT = '/var/www/media'
-    ADDITIONAL_BACKUP_PATHS = ['/home/user/path1', '/home/user/path2']
 
 Generate and run Terraform configuration in your home directory:
 
