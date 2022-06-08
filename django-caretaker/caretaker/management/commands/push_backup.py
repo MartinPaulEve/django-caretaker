@@ -37,7 +37,8 @@ class Command(BaseCommand):
 
         self._push_backup(backup_local_file=options.get('backup_local_file'),
                           remote_key=options.get('remote_key'),
-                          s3_client=s3, bucket_name=settings.CARETAKER_BACKUP_BUCKET)
+                          s3_client=s3,
+                          bucket_name=settings.CARETAKER_BACKUP_BUCKET)
 
     def _push_backup(self, backup_local_file, remote_key, s3_client,
                      bucket_name):

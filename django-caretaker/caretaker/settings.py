@@ -132,3 +132,4 @@ AWS_DEFAULT_REGION = 'eu-west-2'
 
 CARETAKER_BACKUP_BUCKET = 'caretakertestbackup'
 CARETAKER_ADDITIONAL_BACKUP_PATHS = ['/home/martin/data', '/home/martin/Pics']
+CARETAKER_BACKEND = 'Amazon S3'

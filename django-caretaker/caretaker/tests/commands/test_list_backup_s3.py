@@ -3,6 +3,7 @@ import tempfile
 from django.test import TestCase
 from moto import mock_s3
 
+from caretaker.backend.abstract_backend import BackendFactory
 from caretaker.management.commands.list_backups import Command as ListCommand
 from caretaker.tests.utils import setup_bucket, upload_temporary_file
 
@@ -12,25 +13,27 @@ class TestListBackups(TestCase):
     def setUp(self):
         setup_bucket(self)
 
-        self.logger.info('Setup list_backups')
+        self.logger.info('Setup list_backups S3')
 
         self.list_command = ListCommand()
 
+        self.backend = BackendFactory.get_backend('Amazon S3')
+
     def tearDown(self):
-        self.logger.info('Teardown list_backups')
+        self.logger.info('Teardown list_backups S3')
         pass
 
     def test_list(self):
-        self.logger.info('Testing list_backups')
+        self.logger.info('Testing list_backups S3')
         with tempfile.TemporaryDirectory() as temporary_directory_name:
 
             # first test that we get nothing back
             result = self.list_command._list_backups(
                 remote_key=self.json_key, bucket_name=self.bucket_name,
-                s3_client=self.client
+                backend=self.backend
             )
 
-            self.assertIsNone(result)
+            self.assertListEqual(result, [])
 
             # run the first time to store the result
             upload_temporary_file(
@@ -41,16 +44,15 @@ class TestListBackups(TestCase):
             # Now check that we get a result
             result = self.list_command._list_backups(
                 remote_key=self.json_key, bucket_name=self.bucket_name,
-                s3_client=self.client
+                backend=self.backend
             )
 
             self.assertIsNotNone(result)
             version = None
 
             if result:
-                self.assertTrue(result[0]['Size'] == 4)
-                self.assertTrue(result[0]['Key'] == self.json_key)
-                version = result[0]['VersionId']
+                self.assertTrue(result[0]['size'] == 4)
+                version = result[0]['version_id']
 
             # now test that when we add a new file it versions it
             result, temporary_file = upload_temporary_file(
@@ -61,17 +63,16 @@ class TestListBackups(TestCase):
             # first test that we get nothing back
             result = self.list_command._list_backups(
                 remote_key=self.json_key, bucket_name=self.bucket_name,
-                s3_client=self.client
+                backend=self.backend
             )
 
             self.assertIsNotNone(result)
 
             if result:
-                self.assertTrue(result[0]['Size'] == 5)
-                self.assertTrue(result[0]['Key'] == self.json_key)
-                self.assertFalse(result[0]['VersionId'] == 'null')
-                self.assertFalse(version == result[0]['VersionId'])
-                version = result[0]['VersionId']
+                self.assertTrue(result[0]['size'] == 5)
+                self.assertFalse(result[0]['version_id'] == 'null')
+                self.assertFalse(version == result[0]['version_id'])
+                version = result[0]['version_id']
 
             # now run a final time with the same version and check that
             # the latest version is the same
@@ -81,11 +82,11 @@ class TestListBackups(TestCase):
 
             result = self.list_command._list_backups(
                 remote_key=self.json_key, bucket_name=self.bucket_name,
-                s3_client=self.client
+                backend=self.backend
             )
 
             self.assertIsNotNone(result)
 
             if result:
                 self.assertTrue(
-                    result[0]['VersionId'] == version)
+                    result[0]['version_id'] == version)

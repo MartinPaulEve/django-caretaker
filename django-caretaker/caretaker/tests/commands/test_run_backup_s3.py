@@ -6,6 +6,7 @@ import django
 from django.test import TestCase
 from moto import mock_s3
 
+from caretaker.backend.abstract_backend import BackendFactory
 from caretaker.management.commands.list_backups import Command as ListCommand
 from caretaker.management.commands.pull_backup import Command as PullCommand
 from caretaker.management.commands.run_backup import Command as RunCommand
@@ -18,20 +19,22 @@ class TestRunBackup(TestCase):
     def setUp(self):
         setup_bucket(self)
 
-        self.logger.info('Setup for run_backup')
+        self.logger.info('Setup for run_backup S3')
 
         self.run_command = RunCommand()
         self.pull_command = PullCommand()
         self.list_command = ListCommand()
 
+        self.backend = BackendFactory.get_backend('Amazon S3')
+
         django.setup()
 
     def tearDown(self):
-        self.logger.info('Teardown for run_backup')
+        self.logger.info('Teardown for run_backup S3')
         pass
 
     def test_run(self):
-        self.logger.info('Testing run_backup')
+        self.logger.info('Testing run_backup S3')
 
         with tempfile.TemporaryDirectory() as temporary_directory_name:
             temporary_directory_name = Path(
@@ -57,7 +60,7 @@ class TestRunBackup(TestCase):
             # list the results to get a versionId of the SQL backup
             result = self.list_command._list_backups(
                 remote_key=self.dump_key, bucket_name=self.bucket_name,
-                s3_client=self.client
+                backend=self.backend
             )
 
             Path(temporary_directory_name / self.json_key).unlink(
@@ -65,7 +68,7 @@ class TestRunBackup(TestCase):
             download_location = temporary_directory_name / self.json_key
 
             result = self.pull_command._pull_backup(
-                backup_version=result[0]['VersionId'],
+                backup_version=result[0]['version_id'],
                 remote_key=self.dump_key,
                 bucket_name=self.bucket_name,
                 s3_client=self.client,
@@ -83,7 +86,7 @@ class TestRunBackup(TestCase):
             # now check the archive zip
             result = self.list_command._list_backups(
                 remote_key=self.data_key, bucket_name=self.bucket_name,
-                s3_client=self.client
+                backend=self.backend
             )
 
             Path(temporary_directory_name / self.data_key).unlink(
@@ -91,7 +94,7 @@ class TestRunBackup(TestCase):
             download_location = temporary_directory_name / self.data_key
 
             result = self.pull_command._pull_backup(
-                backup_version=result[0]['VersionId'],
+                backup_version=result[0]['version_id'],
                 remote_key=self.data_key,
                 bucket_name=self.bucket_name,
                 s3_client=self.client,
