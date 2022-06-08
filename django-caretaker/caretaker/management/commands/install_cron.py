@@ -27,7 +27,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """Installs Cron jobs
         """
-        self._install_cron(job_name=settings.BACKUP_BUCKET,
+        self._install_cron(job_name=settings.CARETAKER_BACKUP_BUCKET,
                            action=options.get('action'),
                            base_dir=settings.BASE_DIR)
 

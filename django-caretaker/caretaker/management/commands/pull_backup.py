@@ -31,7 +31,7 @@ class Command(BaseCommand):
 
         self._pull_backup(out_file=options.get('backup_local_file'),
                           remote_key=options.get('remote_key'),
-                          s3_client=s3, bucket_name=settings.BACKUP_BUCKET,
+                          s3_client=s3, bucket_name=settings.CARETAKER_BACKUP_BUCKET,
                           backup_version=options.get('backup_version'))
 
     @staticmethod

@@ -20,7 +20,7 @@ class Command(BaseCommand):
         with terraform_file.open('r') as in_file:
             # render the terraform file into a template
             t = Template(in_file.read())
-            c = Context({"bucket_name": settings.BACKUP_BUCKET})
+            c = Context({"bucket_name": settings.CARETAKER_BACKUP_BUCKET})
             rendered = t.render(c)
 
             # create the file structure

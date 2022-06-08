@@ -31,7 +31,7 @@ class Command(BaseCommand):
 
         self._run_backup(output_directory=options.get('output_directory'),
                          s3_client=s3,
-                         bucket_name=settings.BACKUP_BUCKET,
+                         bucket_name=settings.CARETAKER_BACKUP_BUCKET,
                          path_list=options.get('additional_files'))
 
     @staticmethod

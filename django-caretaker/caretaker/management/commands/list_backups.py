@@ -24,7 +24,7 @@ class Command(BaseCommand):
                           aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
 
         self._list_backups(s3_client=s3, remote_key=options.get('remote_key'),
-                           bucket_name=settings.BACKUP_BUCKET)
+                           bucket_name=settings.CARETAKER_BACKUP_BUCKET)
 
     @staticmethod
     def _list_backups(remote_key, s3_client, bucket_name):
