@@ -2,7 +2,7 @@ import humanize
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from caretaker.backend.abstract_backend import BackendFactory
+from caretaker.backend.abstract_backend import BackendFactory, AbstractBackend
 from caretaker.utils import log
 
 
@@ -32,7 +32,8 @@ class Command(BaseCommand):
                           bucket_name=settings.CARETAKER_BACKUP_BUCKET)
 
     @staticmethod
-    def list_backups(remote_key, backend, bucket_name) -> list[dict]:
+    def list_backups(remote_key: str, backend: AbstractBackend,
+                     bucket_name: str) -> list[dict]:
         logger = log.get_logger('caretaker')
 
         results = backend.versions(remote_key=remote_key,

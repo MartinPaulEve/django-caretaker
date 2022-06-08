@@ -4,7 +4,7 @@ from crontab import CronTab
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from caretaker.utils import log
+from caretaker.utils import log, file
 
 
 def find_job(tab, comment):
@@ -32,10 +32,13 @@ class Command(BaseCommand):
                           base_dir=settings.BASE_DIR)
 
     @staticmethod
-    def install_cron(job_name, action, base_dir):
-        logger = log.get_logger('caretaker')
+    def install_cron(job_name: str, action: str, base_dir: str) \
+            -> CronTab | None:
+        logger = log.get_logger('caretaker-cron')
         tab = CronTab(user=True)
         virtualenv = os.environ.get('VIRTUAL_ENV', None)
+
+        base_dir = file.normalize_path(base_dir)
 
         jobs = [
             {
@@ -48,7 +51,7 @@ class Command(BaseCommand):
             current_job = find_job(tab, job['name'])
 
             if not current_job:
-                django_command = "{0}/manage.py {1}".format(base_dir,
+                django_command = "{0}/manage.py {1}".format(str(base_dir),
                                                             job['task'])
                 command = '%s/bin/python3 %s' % (virtualenv, django_command)
 
@@ -65,3 +68,5 @@ class Command(BaseCommand):
             pass
         else:
             tab.write()
+
+        return tab
