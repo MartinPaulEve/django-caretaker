@@ -1,3 +1,5 @@
+import os
+import sys
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
@@ -10,6 +12,11 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+PATH = os.environ.get(
+    "CARETAKER_PATH",
+    os.path.abspath("../django-caretaker/")
+)
+sys.path.insert(0, PATH)
 #import os
 #import sys
 #sys.path.insert(0, os.path.abspath('./django-caretaker/caretaker'))
@@ -27,8 +34,7 @@ author = 'Martin Paul Eve'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = [
-]
+extensions = ["sphinx.ext.autodoc"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
