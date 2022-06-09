@@ -21,7 +21,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """
-        Pushes the backup to S3
+        Pushes the backup to the remote store via a command
+        :param args: the parser arguments
+        :param options: the parser options
+        :return: None
         """
 
         backend = BackendFactory.get_backend()
@@ -39,6 +42,14 @@ class Command(BaseCommand):
     @staticmethod
     def push_backup(backup_local_file: str, remote_key: str,
                     backend: AbstractBackend, bucket_name: str) -> StoreOutcome:
+        """
+        Push a backup to the remote store
+        :param backup_local_file: the local file to push
+        :param remote_key: the remote key (filename)
+        :param backend: the backend to use
+        :param bucket_name: the name of the bucket/store
+        :return: a StoreOutcome
+        """
 
         logger = log.get_logger('caretaker')
 

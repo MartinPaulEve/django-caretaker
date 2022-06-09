@@ -23,7 +23,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """
-        Creates a local backup set
+        Creates a set of local backup files via a command
+        :param args: the parser arguments
+        :param options: the parser options
+        :return: None
         """
 
         self.create_backup(output_directory=options.get('output_directory'),
@@ -34,6 +37,15 @@ class Command(BaseCommand):
                       archive_file: str = 'media.zip',
                       path_list: list | None = None) -> (Path | None,
                                                          Path | None):
+        """
+        Creates a set of local backup files
+        :param output_directory: the output location
+        :param data_file: the output data file (e.g. data.json)
+        :param archive_file: the output archive file (e.g. media.zip)
+        :param path_list: the list of paths to bundle in the zip
+        :return: a 2-tuple of pathlib.Path objects to the data file
+            and archive file
+        """
         logger = log.get_logger('caretaker')
 
         if not output_directory:
@@ -55,7 +67,7 @@ class Command(BaseCommand):
             out_file.write(buffer.read())
             logger.info('Wrote {}'.format(data_file))
 
-        # now create a tarball of the media directory and any others specified
+        # now create a zip of the media directory and any others specified
         path_list = [] if not path_list else path_list
         path_list = list(set(path_list))
 

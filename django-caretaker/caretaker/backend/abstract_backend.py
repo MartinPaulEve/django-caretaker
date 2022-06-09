@@ -33,10 +33,10 @@ class AbstractBackend(metaclass=abc.ABCMeta):
     def versions(self, bucket_name: str, remote_key: str = '') -> list[dict]:
         """
         List the versions of an object
-        :param remote_key: the remote key to list
+        :param remote_key: the remote key (filename) to list
         :param bucket_name: the remote bucket name
-        :return: a list of dictionaries containing 'version_id' and
-        'last_modified'
+        :return: a list of dictionaries containing 'version_id',
+            'last_modified', and 'size'
         """
         pass
 
@@ -47,7 +47,7 @@ class AbstractBackend(metaclass=abc.ABCMeta):
         Store an object remotely
         :param local_file: the local file to store
         :param bucket_name: the remote bucket name
-        :param remote_key: the remote key of the object
+        :param remote_key: the remote key (filename) of the object
         :param check_identical: whether to check if the last version is already
         the same as this version
         :return: a response enum StoreOutcome
@@ -60,7 +60,7 @@ class AbstractBackend(metaclass=abc.ABCMeta):
         """
         Retrieve an object from the remote store as bytes
         :param bucket_name: the remote bucket name
-        :param remote_key: the remote key of the object
+        :param remote_key: the remote key (filename) of the object
         :param version_id: the version ID to fetch
         :return: the bytes of the retrieved object
         """
@@ -73,7 +73,7 @@ class AbstractBackend(metaclass=abc.ABCMeta):
         Retrieve an object from the remote store and save it to a file
         :param local_file: the location to store the local file
         :param bucket_name: the remote bucket name
-        :param remote_key: the remote key of the object
+        :param remote_key: the remote key (filename) of the object
         :param version_id: the version ID to fetch
         :return: a true/false boolean of success
         """
@@ -83,6 +83,13 @@ class AbstractBackend(metaclass=abc.ABCMeta):
 class BackendFactory:
     @staticmethod
     def get_backend(backend_name: str = '') -> AbstractBackend | None:
+        """
+        Return the active backend
+        :param backend_name: the specific backend to return. Otherwise, uses
+            the value of CARETAKER_BACKEND in Django settings.
+        :return:
+        """
+
         # see if there's a list of backends in the settings file
         # if there is, use it
         backends = ['caretaker.backend.backends.s3']

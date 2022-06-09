@@ -3,19 +3,21 @@ import zipfile
 from pathlib import Path
 
 import boto3
+import django.test
 
-from caretaker.backend.abstract_backend import BackendFactory
-from caretaker.utils import log
+from caretaker.backend.abstract_backend import BackendFactory, StoreOutcome
+from caretaker.utils import log, file
 from caretaker.management.commands.push_backup import Command as PushCommand
 
 DEV_NULL = open(os.devnull, "w")
 
 
-def setup_test_class_s3(test_class):
+def setup_test_class_s3(test_class: django.test.TestCase) \
+        -> django.test.TestCase:
     """
-    Generic class to set up tests that require push functionality
+    Generic class to set up/mutate test objects
     :param test_class: the class to mutate
-    :return: the test class
+    :return: the mutated test class
     """
     test_class.command = PushCommand()
     test_class.json_key = 'test.json'
@@ -47,8 +49,19 @@ def setup_test_class_s3(test_class):
     return test_class
 
 
-def upload_temporary_file(test_class, temporary_directory_name, contents):
-    temporary_file = Path(temporary_directory_name) / test_class.json_key
+def upload_temporary_file(test_class: django.test.TestCase,
+                          temporary_directory_name: str,
+                          contents: str) -> (StoreOutcome, Path):
+    """
+    Create a temporary file and upload it to the mocked backend
+    :param test_class: the test case in question
+    :param temporary_directory_name: the output directory to use
+    :param contents: the contents to write to the file
+    :return: a 2-tuple of StoreOutcome and pathlib.Path to the file
+    """
+
+    temporary_file = file.normalize_path(
+        temporary_directory_name) / test_class.json_key
 
     with temporary_file.open('w') as out_file:
         out_file.write(contents)

@@ -29,9 +29,20 @@ class S3Backend(AbstractBackend):
 
     @property
     def backend_name(self) -> str:
+        """
+        The display name of the backend
+        :return: a string of the backend name
+        """
         return 'Amazon S3'
 
     def versions(self, bucket_name: str, remote_key: str = '') -> list[dict]:
+        """
+        List the versions of an object in an S3 bucket
+        :param remote_key: the remote key (filename) to list
+        :param bucket_name: the remote bucket name
+        :return: a list of dictionaries containing 'version_id',
+            'last_modified', and 'size'
+        """
         try:
             versions = self.s3.list_object_versions(Bucket=bucket_name,
                                                     Prefix=remote_key)
@@ -55,6 +66,15 @@ class S3Backend(AbstractBackend):
 
     def store_object(self, local_file: Path, bucket_name: str,
                      remote_key: str, check_identical: bool) -> StoreOutcome:
+        """
+        Store an object remotely
+        :param local_file: the local file to store
+        :param bucket_name: the remote bucket name
+        :param remote_key: the remote key (filename) of the object
+        :param check_identical: whether to check if the last version is already
+        the same as this version
+        :return: a response enum StoreOutcome
+        """
 
         if check_identical:
             # download the latest version of the backup to see if it's the same
@@ -96,6 +116,13 @@ class S3Backend(AbstractBackend):
 
     def get_object(self, bucket_name: str, remote_key: str,
                    version_id: str) -> io.BytesIO | None:
+        """
+        Retrieve an object from the remote store as bytes
+        :param bucket_name: the remote bucket name
+        :param remote_key: the remote key (filename) of the object
+        :param version_id: the version ID to fetch
+        :return: the bytes of the retrieved object
+        """
         try:
             self.logger.info('Fetching version {} of {}'.format(
                 version_id,
@@ -120,6 +147,15 @@ class S3Backend(AbstractBackend):
 
     def download_object(self, local_file: Path, bucket_name: str,
                         remote_key: str, version_id: str) -> bool:
+        """
+        Retrieve an object from the remote store and save it to a file
+        :param local_file: the location to store the local file
+        :param bucket_name: the remote bucket name
+        :param remote_key: the remote key (filename) of the object
+        :param version_id: the version ID to fetch
+        :return: a true/false boolean of success
+        """
+
         # normalize path
         out_file = Path(local_file).expanduser()
 
