@@ -6,3 +6,4 @@ mock
 testfixtures
 moto
 python-crontab==2.2.3
+sphinx
