@@ -18,6 +18,13 @@ class Command(BaseCommand):
     @staticmethod
     def _output_terraform_file(output_directory: Path, terraform_file: Path,
                                file_name: str) -> Path | None:
+        """
+        Writes a Terraform file to an output directory
+        :param output_directory: the output directory
+        :param terraform_file: the input file to template and copy
+        :param file_name: the output filename
+        :return: a pathlib.Path of the output file
+        """
 
         with terraform_file.open('r') as in_file:
             # render the terraform file into a template
@@ -37,6 +44,11 @@ class Command(BaseCommand):
 
     @staticmethod
     def generate_terraform(output_directory: str) -> Path | None:
+        """
+        Generate a set of Terraform output files to provision an infrastructure
+        :param output_directory: the output directory to write to
+        :return: a path indicating where the Terraform files reside
+        """
         logger = log.get_logger('caretaker')
         output_directory = file.normalize_path(output_directory)
 
@@ -63,6 +75,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """
-        Produces a Terraform setup configuration
+        Produces a Terraform setup configuration via a command
+        :param args: the parser arguments
+        :param options: the parser options
+        :return: None
         """
         self.generate_terraform(options.get('output_directory'))

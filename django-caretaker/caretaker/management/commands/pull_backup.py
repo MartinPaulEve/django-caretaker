@@ -14,7 +14,7 @@ class Command(BaseCommand):
     Installs cron tasks.
     """
 
-    help = "Pulls a specific backup from the remote store"
+    help = "Pulls a specific backup version from the remote store"
 
     def add_arguments(self, parser):
         parser.add_argument('--backup-version')
@@ -24,7 +24,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """
-        Pulls a backup from S3
+        Pull a backup from the remote store via a command
+        :param args: the parser arguments
+        :param options: the parser options
+        :return: None
         """
         backend = BackendFactory.get_backend()
 
@@ -42,6 +45,15 @@ class Command(BaseCommand):
     @staticmethod
     def pull_backup(backup_version: str, out_file: str, remote_key: str,
                     backend: AbstractBackend, bucket_name: str) -> Path | None:
+        """
+        Pull a backup object from the remote store
+        :param backup_version: the version ID of the backup to pull
+        :param out_file: the output file/download location
+        :param remote_key: the remote key (filename)
+        :param backend: the backend to use
+        :param bucket_name: the name of the bucket/store
+        :return: a pathlib.Path object pointing to the downloaded file or None
+        """
         logger = log.get_logger('caretaker')
 
         out_file = file.normalize_path(out_file)

@@ -18,7 +18,12 @@ class Command(BaseCommand):
                             default='backup.sql')
 
     def handle(self, *args, **options):
-        """Lists available backups"""
+        """
+        Lists backups in the remote store via a command
+        :param args: the parser arguments
+        :param options: the parser options
+        :return: None
+        """
 
         backend = BackendFactory.get_backend()
 
@@ -34,6 +39,14 @@ class Command(BaseCommand):
     @staticmethod
     def list_backups(remote_key: str, backend: AbstractBackend,
                      bucket_name: str) -> list[dict]:
+        """
+        Lists backups in the remote store
+        :param remote_key: the remote key (filename)
+        :param backend: the backend to use
+        :param bucket_name: the name of the bucket/store
+        :return: a list of dictionaries that contain the keys "last_modified",
+            "version_id", and "size"
+        """
         logger = log.get_logger('caretaker')
 
         results = backend.versions(remote_key=remote_key,

@@ -74,8 +74,8 @@
                         <tbody>
                             {% for sql_entry in data_versions %}
                                 <tr>
-                                    <td>{{ sql_entry.lastmodified }}</td>
-                                    <td>{{ sql_entry.versionid }}</td>
+                                    <td>{{ sql_entry.last_modified }}</td>
+                                    <td>{{ sql_entry.version_id }}</td>
                                     <td>{{ sql_entry.size }}</td>
                                     <td><a href="{% url 'download_backup' 'data' sql_entry.versionid %}">Download</a></td>
                                 </tr>

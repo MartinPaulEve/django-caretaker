@@ -24,7 +24,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """
-        Creates a backup set and pushes it to S3
+        Creates a backup set and pushes it to the remote store
+        :param args: the parser arguments
+        :param options: the parser options
+        :return: None
         """
 
         backend = BackendFactory.get_backend()
@@ -46,6 +49,17 @@ class Command(BaseCommand):
                    backend: AbstractBackend | None = None,
                    bucket_name: str | None = None) -> (Path | None,
                                                        Path | None):
+        """
+        Creates a backup set and pushes it to the remote store
+        :param output_directory: the output directory for the local backup set
+        :param data_file: the output data file (e.g. data.json)
+        :param archive_file: the output archive file (e.g. media.zip)
+        :param path_list: the list of paths to bundle in the zip
+        :param backend: the backend to use
+        :param bucket_name: the name of the bucket/store
+        :return: a 2-tuple of pathlib.Path objects to the data file
+            and archive file
+        """
         logger = log.get_logger('caretaker')
 
         if not path_list:
