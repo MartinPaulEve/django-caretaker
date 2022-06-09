@@ -1,0 +1,8 @@
+Django==4.0.5
+boto3
+rich
+humanize
+mock
+testfixtures
+moto
+python-crontab==2.2.3
