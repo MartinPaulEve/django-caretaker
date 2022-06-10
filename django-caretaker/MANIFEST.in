@@ -3,3 +3,4 @@ include README.md
 recursive-include caretaker/terraform *
 recursive-include caretaker/templates *
 recursive-include caretaker/docs *
+recursive-include caretaker/backend/backends/terraform_aws
