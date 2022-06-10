@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import BinaryIO
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -16,7 +17,7 @@ class Command(BaseCommand):
     help = "Gets a terraform setup configuration"
 
     @staticmethod
-    def _output_terraform_file(output_directory: Path, terraform_file: Path,
+    def _output_terraform_file(output_directory: Path, terraform_file: BinaryIO,
                                file_name: str) -> Path | None:
         """
         Writes a Terraform file to an output directory
@@ -27,7 +28,7 @@ class Command(BaseCommand):
         :return: a pathlib.Path of the output file
         """
 
-        with terraform_file.open('r') as in_file:
+        with terraform_file as in_file:
             # render the terraform file into a template
             t = Template(in_file.read())
             c = Context({"bucket_name": settings.CARETAKER_BACKUP_BUCKET})
@@ -57,10 +58,11 @@ class Command(BaseCommand):
         output_directory = file.normalize_path(output_directory)
 
         # configure file paths
-        terraform_dir = backend.terraform_template
+        terraform_file = file.get_package_file(backend=backend,
+                                               filename='main.tf')
 
-        terraform_file = Path(terraform_dir / 'main.tf')
-        terraform_output_file = Path(terraform_dir / 'output.tf')
+        terraform_output_file = file.get_package_file(backend=backend,
+                                                      filename='output.tf')
 
         Command._output_terraform_file(
             output_directory, terraform_file, 'main.tf')
