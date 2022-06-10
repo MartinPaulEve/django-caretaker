@@ -1,8 +1,10 @@
 import filecmp
+import importlib
 import io
 import logging
 import tempfile
 from pathlib import Path
+from types import ModuleType
 
 import boto3
 import botocore.exceptions
@@ -25,6 +27,16 @@ class S3Backend(AbstractBackend):
         :return: a pathlib.Path to the backend's templates'
         """
         return Path('./caretaker/backend/backends/terraform_aws').resolve()
+
+    @property
+    def terraform_template_module(self) -> ModuleType:
+        """
+        The directory that stores this backend's templates
+
+        :return: a pathlib.Path to the backend's templates'
+        """
+        return importlib.import_module(
+            'caretaker.backend.backends.terraform_aws')
 
     def __init__(self, logger: logging.Logger | None = None):
         super().__init__(logger)

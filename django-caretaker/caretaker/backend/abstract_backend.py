@@ -4,6 +4,7 @@ import logging
 import sys
 from enum import Enum
 from pathlib import Path
+from types import ModuleType
 
 from django.conf import settings
 
@@ -33,6 +34,16 @@ class AbstractBackend(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def terraform_template(self) -> Path:
+        """
+        The directory that stores this backend's templates
+
+        :return: a pathlib.Path to the backend's templates'
+        """
+        pass
+
+    @property
+    @abc.abstractmethod
+    def terraform_template_module(self) -> ModuleType:
         """
         The directory that stores this backend's templates
 
