@@ -15,6 +15,8 @@ import sys
 sys.path.insert(0, os.path.abspath('../django-caretaker/caretaker/'))
 sys.path.insert(0, os.path.abspath('../'))
 sys.path.insert(0, os.path.abspath('../django-caretaker/'))
+sys.path.insert(0, os.environ.get(
+    'CARETAKER_PATH', os.path.abspath('../django-caretaker/')))
 
 
 # -- Project information -----------------------------------------------------
