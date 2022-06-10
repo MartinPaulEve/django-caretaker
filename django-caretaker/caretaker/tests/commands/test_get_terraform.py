@@ -26,7 +26,9 @@ class TestTerraformOutput(TestCase):
         self.logger.info('Running Terraform test')
         with tempfile.TemporaryDirectory() as temporary_directory_name:
             self.command.generate_terraform(
-                output_directory=temporary_directory_name)
+                output_directory=temporary_directory_name,
+                backend=self.backend
+            )
 
             self.assertTrue(
                 (Path(temporary_directory_name) / 'main.tf').exists())

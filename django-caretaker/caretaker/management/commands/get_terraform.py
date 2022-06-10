@@ -1,10 +1,10 @@
-import os
 from pathlib import Path
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.template import Template, Context
 
+from caretaker.backend.abstract_backend import AbstractBackend, BackendFactory
 from caretaker.utils import log, file
 
 
@@ -44,19 +44,20 @@ class Command(BaseCommand):
             return output_file
 
     @staticmethod
-    def generate_terraform(output_directory: str) -> Path | None:
+    def generate_terraform(output_directory: str,
+                           backend: AbstractBackend) -> Path | None:
         """
         Generate a set of Terraform output files to provision an infrastructure
 
         :param output_directory: the output directory to write to
+        :param backend: the backend to use
         :return: a path indicating where the Terraform files reside
         """
         logger = log.get_logger('caretaker')
         output_directory = file.normalize_path(output_directory)
 
         # configure file paths
-        terraform_dir = Path(
-            os.path.realpath(__file__)).parent.parent.parent / 'terraform'
+        terraform_dir = backend.terraform_template
 
         terraform_file = Path(terraform_dir / 'main.tf')
         terraform_output_file = Path(terraform_dir / 'output.tf')
@@ -83,4 +84,14 @@ class Command(BaseCommand):
         :param options: the parser options
         :return: None
         """
-        self.generate_terraform(options.get('output_directory'))
+        backend = BackendFactory.get_backend()
+
+        if not backend:
+            logger = log.get_logger('caretaker')
+            logger.error('Unable to find a valid backend.')
+            return
+
+        self.generate_terraform(
+            output_directory=options.get('output_directory'),
+            backend=backend
+        )

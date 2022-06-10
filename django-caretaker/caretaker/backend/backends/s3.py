@@ -17,6 +17,15 @@ def get_backend():
 
 
 class S3Backend(AbstractBackend):
+    @property
+    def terraform_template(self) -> Path:
+        """
+        The directory that stores this backend's templates
+
+        :return: a pathlib.Path to the backend's templates'
+        """
+        return Path('./caretaker/backend/backends/terraform_aws').resolve()
+
     def __init__(self, logger: logging.Logger | None = None):
         super().__init__(logger)
 
