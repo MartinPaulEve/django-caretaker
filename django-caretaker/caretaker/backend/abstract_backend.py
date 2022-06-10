@@ -25,6 +25,7 @@ class AbstractBackend(metaclass=abc.ABCMeta):
     def backend_name(self) -> str:
         """
         The display name of the backend
+
         :return: a string of the backend name
         """
         pass
@@ -33,10 +34,10 @@ class AbstractBackend(metaclass=abc.ABCMeta):
     def versions(self, bucket_name: str, remote_key: str = '') -> list[dict]:
         """
         List the versions of an object
+
         :param remote_key: the remote key (filename) to list
         :param bucket_name: the remote bucket name
-        :return: a list of dictionaries containing 'version_id',
-            'last_modified', and 'size'
+        :return: a list of dictionaries containing 'version_id', 'last_modified', and 'size'
         """
         pass
 
@@ -45,11 +46,11 @@ class AbstractBackend(metaclass=abc.ABCMeta):
                      remote_key: str, check_identical: bool) -> StoreOutcome:
         """
         Store an object remotely
+
         :param local_file: the local file to store
         :param bucket_name: the remote bucket name
         :param remote_key: the remote key (filename) of the object
-        :param check_identical: whether to check if the last version is already
-        the same as this version
+        :param check_identical: whether to check if the last version is already the same as this version
         :return: a response enum StoreOutcome
         """
         pass
@@ -59,6 +60,7 @@ class AbstractBackend(metaclass=abc.ABCMeta):
                    version_id: str) -> bytes | None:
         """
         Retrieve an object from the remote store as bytes
+
         :param bucket_name: the remote bucket name
         :param remote_key: the remote key (filename) of the object
         :param version_id: the version ID to fetch
@@ -71,6 +73,7 @@ class AbstractBackend(metaclass=abc.ABCMeta):
                         remote_key: str, version_id: str) -> bool:
         """
         Retrieve an object from the remote store and save it to a file
+
         :param local_file: the location to store the local file
         :param bucket_name: the remote bucket name
         :param remote_key: the remote key (filename) of the object
@@ -85,8 +88,8 @@ class BackendFactory:
     def get_backend(backend_name: str = '') -> AbstractBackend | None:
         """
         Return the active backend
-        :param backend_name: the specific backend to return. Otherwise, uses
-            the value of CARETAKER_BACKEND in Django settings.
+
+        :param backend_name: the specific backend to return. Otherwise, uses the value of CARETAKER_BACKEND in Django settings.
         :return:
         """
 

@@ -11,6 +11,7 @@ from caretaker.backend.abstract_backend import BackendFactory, AbstractBackend
 def list_backups(request: HttpRequest) -> HttpResponse:
     """
     A Django view showing the list of objects
+
     :param request: the HttpRequest object
     :return: an HttpResponse
     """
@@ -37,6 +38,7 @@ def download_backup(request: HttpRequest, backup_type: str, version_id: str) \
         -> StreamingHttpResponse:
     """
     A view that allows the user to download a backup
+
     :param request: the HttpRequest object
     :param backup_type: the type of backup ('sql' or 'media.zip')
     :param version_id: the version ID to download
@@ -63,6 +65,7 @@ def download_backup(request: HttpRequest, backup_type: str, version_id: str) \
 def _fetch_versions(backend: AbstractBackend, key) -> list[dict]:
     """
     Fetches the version list for a remote key from the backend
+
     :param backend: the backend to use
     :param key: the remote key (filename)
     :return: a list of dictionaries containing 'version_id',

@@ -16,6 +16,7 @@ def setup_test_class_s3(test_class: django.test.TestCase) \
         -> django.test.TestCase:
     """
     Generic class to set up/mutate test objects
+
     :param test_class: the class to mutate
     :return: the mutated test class
     """
@@ -54,6 +55,7 @@ def upload_temporary_file(test_class: django.test.TestCase,
                           contents: str) -> (StoreOutcome, Path):
     """
     Create a temporary file and upload it to the mocked backend
+
     :param test_class: the test case in question
     :param temporary_directory_name: the output directory to use
     :param contents: the contents to write to the file
@@ -74,7 +76,16 @@ def upload_temporary_file(test_class: django.test.TestCase,
     return result, temporary_file
 
 
-def file_in_zip(zip_file, filename):
+def file_in_zip(zip_file: str, filename: str) -> bool:
+    """
+    Test whether a file exists inside a zip
+
+    :param zip_file: the input zip file
+    :param filename: the file to check for
+    :return: True if found, else False
+    """
+    zip_file = file.normalize_path(zip_file)
+
     with zipfile.ZipFile(zip_file, 'r') as zf:
         name_list = [filename.split('/')[-1]
                      for filename in zf.namelist()]

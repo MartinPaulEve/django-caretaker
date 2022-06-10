@@ -25,6 +25,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """
         Pull a backup from the remote store via a command
+
         :param args: the parser arguments
         :param options: the parser options
         :return: None
@@ -47,6 +48,7 @@ class Command(BaseCommand):
                     backend: AbstractBackend, bucket_name: str) -> Path | None:
         """
         Pull a backup object from the remote store
+
         :param backup_version: the version ID of the backup to pull
         :param out_file: the output file/download location
         :param remote_key: the remote key (filename)

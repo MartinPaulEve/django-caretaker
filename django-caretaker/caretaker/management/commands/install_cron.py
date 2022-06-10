@@ -10,6 +10,7 @@ from caretaker.utils import log, file
 def find_job(tab: CronTab, comment: str) -> CronItem | None:
     """
     Locates an existing crontab entry
+
     :param tab: the Crontab object
     :param comment: the comment attached to the job
     :return: a CrontabItem or None
@@ -33,6 +34,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """
         Installs a crontab entry to run the backup daily via a command
+
         :param args: the parser arguments
         :param options: the parser options
         :return: None
@@ -46,11 +48,10 @@ class Command(BaseCommand):
             -> CronTab | None:
         """
         Installs a crontab entry to run the backup daily
+
         :param job_name: the name of the cron job
         :param base_dir: the working directory from which to operate
-        :param action: the action to take (one of "test", "quiet", or "").
-            "Test" will perform a dry run. Quiet will exit silently with
-            changes unsaved. An empty string will save the crontab file.
+        :param action: the action to take ("test", "quiet", or ""). "Test" will perform a dry run. Quiet will exit silently with changes unsaved. An empty string will save the crontab file.
         :return:
         """
         logger = log.get_logger('caretaker-cron')

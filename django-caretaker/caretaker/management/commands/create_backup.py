@@ -24,6 +24,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """
         Creates a set of local backup files via a command
+
         :param args: the parser arguments
         :param options: the parser options
         :return: None
@@ -39,12 +40,12 @@ class Command(BaseCommand):
                                                          Path | None):
         """
         Creates a set of local backup files
+
         :param output_directory: the output location
         :param data_file: the output data file (e.g. data.json)
         :param archive_file: the output archive file (e.g. media.zip)
         :param path_list: the list of paths to bundle in the zip
-        :return: a 2-tuple of pathlib.Path objects to the data file
-            and archive file
+        :return: a 2-tuple of pathlib.Path objects to the data file and archive file
         """
         logger = log.get_logger('caretaker')
 

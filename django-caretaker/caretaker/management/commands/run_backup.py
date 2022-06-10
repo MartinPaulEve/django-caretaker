@@ -25,6 +25,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """
         Creates a backup set and pushes it to the remote store
+
         :param args: the parser arguments
         :param options: the parser options
         :return: None
@@ -51,14 +52,14 @@ class Command(BaseCommand):
                                                        Path | None):
         """
         Creates a backup set and pushes it to the remote store
+
         :param output_directory: the output directory for the local backup set
         :param data_file: the output data file (e.g. data.json)
         :param archive_file: the output archive file (e.g. media.zip)
         :param path_list: the list of paths to bundle in the zip
         :param backend: the backend to use
         :param bucket_name: the name of the bucket/store
-        :return: a 2-tuple of pathlib.Path objects to the data file
-            and archive file
+        :return: 2-tuple of pathlib.Path objects to the data file & archive file
         """
         logger = log.get_logger('caretaker')
 

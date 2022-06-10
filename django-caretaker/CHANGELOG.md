@@ -1,6 +1,7 @@
 # Changelog
 
 ## Since Last Release
+* Added sphinx documentation
 * Added docstrings and documentation
 
 ## 0.3.1: “Tricorder” (2022-06-08)

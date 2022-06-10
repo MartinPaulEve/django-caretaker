@@ -20,6 +20,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """
         Lists backups in the remote store via a command
+
         :param args: the parser arguments
         :param options: the parser options
         :return: None
@@ -41,11 +42,11 @@ class Command(BaseCommand):
                      bucket_name: str) -> list[dict]:
         """
         Lists backups in the remote store
+
         :param remote_key: the remote key (filename)
         :param backend: the backend to use
         :param bucket_name: the name of the bucket/store
-        :return: a list of dictionaries that contain the keys "last_modified",
-            "version_id", and "size"
+        :return: a list of dictionaries that contain the keys "last_modified", "version_id", and "size"
         """
         logger = log.get_logger('caretaker')
 

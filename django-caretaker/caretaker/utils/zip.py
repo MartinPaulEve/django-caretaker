@@ -6,6 +6,7 @@ from caretaker.utils import file as file_util
 def create_zip_file(input_paths: list, output_file: Path) -> Path:
     """
     Create a zip file that stores all input paths inside
+
     :param input_paths: a list of input directories
     :param output_file: the output file to write
     :return: a pathlib.Path object pointing to the zip

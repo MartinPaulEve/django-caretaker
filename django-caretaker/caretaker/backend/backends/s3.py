@@ -31,6 +31,7 @@ class S3Backend(AbstractBackend):
     def backend_name(self) -> str:
         """
         The display name of the backend
+
         :return: a string of the backend name
         """
         return 'Amazon S3'
@@ -38,10 +39,10 @@ class S3Backend(AbstractBackend):
     def versions(self, bucket_name: str, remote_key: str = '') -> list[dict]:
         """
         List the versions of an object in an S3 bucket
+
         :param remote_key: the remote key (filename) to list
         :param bucket_name: the remote bucket name
-        :return: a list of dictionaries containing 'version_id',
-            'last_modified', and 'size'
+        :return: a list of dictionaries containing 'version_id', 'last_modified', and 'size'
         """
         try:
             versions = self.s3.list_object_versions(Bucket=bucket_name,
@@ -68,11 +69,11 @@ class S3Backend(AbstractBackend):
                      remote_key: str, check_identical: bool) -> StoreOutcome:
         """
         Store an object remotely
+
         :param local_file: the local file to store
         :param bucket_name: the remote bucket name
         :param remote_key: the remote key (filename) of the object
-        :param check_identical: whether to check if the last version is already
-        the same as this version
+        :param check_identical: whether to check if the last version is already the same as this version
         :return: a response enum StoreOutcome
         """
 
@@ -118,6 +119,7 @@ class S3Backend(AbstractBackend):
                    version_id: str) -> io.BytesIO | None:
         """
         Retrieve an object from the remote store as bytes
+
         :param bucket_name: the remote bucket name
         :param remote_key: the remote key (filename) of the object
         :param version_id: the version ID to fetch
@@ -149,6 +151,7 @@ class S3Backend(AbstractBackend):
                         remote_key: str, version_id: str) -> bool:
         """
         Retrieve an object from the remote store and save it to a file
+
         :param local_file: the location to store the local file
         :param bucket_name: the remote bucket name
         :param remote_key: the remote key (filename) of the object
