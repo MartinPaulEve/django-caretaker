@@ -17,7 +17,7 @@ class TestCreateBackup(TestCase):
 
         self.logger.info('Setup for create_backup')
 
-        self.create_command = CreateCommand()
+        self.create_command = self.frontend
 
         django.setup()
 

@@ -133,3 +133,5 @@ AWS_DEFAULT_REGION = 'eu-west-2'
 CARETAKER_BACKUP_BUCKET = 'caretakertestbackup'
 CARETAKER_BACKEND = 'Amazon S3'
 CARETAKER_BACKENDS = ['caretaker.backend.backends.s3']
+CARETAKER_FRONTEND = 'Django'
+CARETAKER_FRONTENDS = ['caretaker.frontend.frontends.django']

@@ -19,8 +19,8 @@ class TestPullBackup(TestCase):
 
         self.logger.info('Setup for pull_backup S3')
 
-        self.pull_command = PullCommand()
-        self.list_command = ListCommand()
+        self.pull_command = self.frontend
+        self.list_command = self.frontend
 
     def tearDown(self):
         self.logger.info('Teardown for pull_backup S3')

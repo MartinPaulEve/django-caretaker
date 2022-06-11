@@ -7,7 +7,7 @@ import django.test
 
 from caretaker.backend.abstract_backend import BackendFactory, StoreOutcome
 from caretaker.utils import log, file
-from caretaker.management.commands.push_backup import Command as PushCommand
+from caretaker.frontend.abstract_frontend import FrontendFactory
 
 DEV_NULL = open(os.devnull, "w")
 
@@ -20,7 +20,10 @@ def setup_test_class_s3(test_class: django.test.TestCase) \
     :param test_class: the class to mutate
     :return: the mutated test class
     """
-    test_class.command = PushCommand()
+    test_class.backend = BackendFactory.get_backend('Amazon S3')
+    test_class.frontend = FrontendFactory.get_frontend('Django')
+
+    test_class.command = test_class.frontend
     test_class.json_key = 'test.json'
     test_class.dump_key = 'data.json'
     test_class.data_key = 'media.zip'
@@ -44,8 +47,6 @@ def setup_test_class_s3(test_class: django.test.TestCase) \
             'Status': 'Enabled'
         }
     )
-
-    test_class.backend = BackendFactory.get_backend('Amazon S3')
 
     return test_class
 
