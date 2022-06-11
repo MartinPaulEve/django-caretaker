@@ -124,13 +124,20 @@ class AbstractFrontend(metaclass=abc.ABCMeta):
         pass
 
 
+class FrontendNotFoundError (Exception):
+    pass
+
+
 class FrontendFactory:
     @staticmethod
-    def get_frontend(frontend_name: str = 'Django') -> AbstractFrontend | None:
+    def get_frontend(frontend_name: str = '',
+                     raise_on_none: bool = False) -> AbstractFrontend | None:
         """
         Return the active frontend
 
         :param frontend_name: the specific frontend to return. Otherwise, uses the value of CARETAKER_FRONTEND in Django settings.
+        :param raise_on_none: whether to raise an exception if the frontend isn't found
+        :raises FrontendNotFoundError: when the frontend is not found and raise_on_none is set to True
         :return:
         """
 
@@ -148,6 +155,10 @@ class FrontendFactory:
         if frontend_name == '':
             frontend_name = settings.CARETAKER_FRONTEND
 
+        # set the default frontend to Django if we're still not found
+        if not frontend_name or frontend_name == '':
+            frontend_name = 'Django'
+
         # dynamically load modules in the backends space
         for full_package_name in frontends:
             if full_package_name not in sys.modules:
@@ -162,22 +173,29 @@ class FrontendFactory:
                 if frontend.frontend_name == frontend_name:
                     return frontend
 
+        if raise_on_none:
+            raise FrontendNotFoundError
+
         return None
 
     @staticmethod
     def get_frontend_and_backend(
-            frontend_name: str = 'Django',
-            backend_name: str = '') -> (AbstractFrontend | None,
-                                        AbstractBackend | None):
+            frontend_name: str = '',
+            backend_name: str = '',
+            raise_on_none: bool = False) -> (AbstractFrontend | None,
+                                             AbstractBackend | None):
         """
         Return the active frontend and backend
 
         :param frontend_name: the name of the frontend
         :param backend_name: the name of the backend
+        :param raise_on_none: whether to raise exceptions if no backend is found
         :return: 2-tuple of a frontend and backend
         """
 
-        frontend = FrontendFactory.get_frontend(frontend_name)
-        backend = BackendFactory.get_backend(backend_name)
+        frontend = FrontendFactory.get_frontend(frontend_name,
+                                                raise_on_none=raise_on_none)
+        backend = BackendFactory.get_backend(backend_name,
+                                             raise_on_none=raise_on_none)
 
         return frontend, backend

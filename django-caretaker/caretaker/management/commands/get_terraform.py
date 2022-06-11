@@ -1,36 +1,38 @@
-from django.core.management.base import BaseCommand
+import djclick as click
 
-from caretaker.utils import log
+from caretaker.backend.abstract_backend import BackendNotFoundError
+from caretaker.frontend.abstract_frontend import FrontendNotFoundError
 from caretaker.frontend.abstract_frontend import FrontendFactory
+from caretaker.utils import log
 
 
-class Command(BaseCommand):
+@click.command()
+@click.argument('output-directory')
+@click.option('--backend-name', '-b',
+              help='The name of the backend to use',
+              type=str)
+@click.option('--frontend-name', '-f',
+              help='The name of the frontend to use',
+              type=str)
+def command(output_directory: str, backend_name: str, frontend_name: str) \
+        -> None:
     """
-    Installs cron tasks.
+    Output terraform files to the specified OUTPUT-DIRECTORY
     """
+    logger = log.get_logger('caretaker')
 
-    help = "Gets a terraform setup configuration"
-
-    def add_arguments(self, parser):
-        parser.add_argument('--output-directory',
-                            default='~/terraform_configuration')
-
-    def handle(self, *args, **options):
-        """
-        Produces a Terraform setup configuration via a command
-
-        :param args: the parser arguments
-        :param options: the parser options
-        :return: None
-        """
-        frontend, backend = FrontendFactory.get_frontend_and_backend()
-
-        if not backend:
-            logger = log.get_logger('caretaker')
-            logger.error('Unable to find a valid backend.')
-            return
+    try:
+        frontend, backend = FrontendFactory.get_frontend_and_backend(
+            backend_name=backend_name,
+            frontend_name=frontend_name,
+            raise_on_none=True
+        )
 
         frontend.generate_terraform(
-            output_directory=options.get('output_directory'),
+            output_directory=output_directory,
             backend=backend
         )
+    except BackendNotFoundError:
+        logger.error('Unable to find a valid backend')
+    except FrontendNotFoundError:
+        logger.error('Unable to find a valid frontend')

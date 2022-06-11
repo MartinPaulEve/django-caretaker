@@ -106,11 +106,14 @@ class AbstractBackend(metaclass=abc.ABCMeta):
 
 class BackendFactory:
     @staticmethod
-    def get_backend(backend_name: str = '') -> AbstractBackend | None:
+    def get_backend(backend_name: str = '',
+                    raise_on_none: bool = False) -> AbstractBackend | None:
         """
         Return the active backend
 
         :param backend_name: the specific backend to return. Otherwise, uses the value of CARETAKER_BACKEND in Django settings.
+        :param raise_on_none: whether to raise an exception if the backend isn't found
+        :raises BackendNotFoundError: when the backend is not found and raise_on_none is set to True
         :return:
         """
 
@@ -128,6 +131,9 @@ class BackendFactory:
         if backend_name == '':
             backend_name = settings.CARETAKER_BACKEND
 
+        if not backend_name or backend_name == '':
+            backend_name = 'Amazon S3'
+
         # dynamically load modules in the backends space
         for full_package_name in backends:
             if full_package_name not in sys.modules:
@@ -142,4 +148,11 @@ class BackendFactory:
                 if backend.backend_name == backend_name:
                     return backend
 
+        if raise_on_none:
+            raise BackendNotFoundError
+
         return None
+
+
+class BackendNotFoundError (Exception):
+    pass
