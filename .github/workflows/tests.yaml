@@ -33,10 +33,10 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Show dir
-        run: ls /home/runner/work/django-caretaker/django-caretaker/manage.py
+        run: ls /home/runner/work/django-caretaker/django-caretaker
       - name: Pwd
         run: pwd
       - name: Run tests
-        run: python3 manage.py test
+        run: python3 django-caretaker/manage.py test
         env:
           SYSTEM_ENV: GITHUB_WORKFLOW
