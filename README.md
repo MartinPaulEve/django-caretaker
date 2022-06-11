@@ -1,7 +1,7 @@
 # django-caretaker
 django-caretaker ('The Caretaker') is a Django app that backs up your database and media files to a versioned remote object store, such as an AWS S3 bucket. It comes with the Terraform files to provision the required cloud infrastructures (e.g. S3 bucket) and provides management commands to schedule regular backups.
 
-![license](https://img.shields.io/github/license/martinpauleve/django-caretaker) ![activity](https://img.shields.io/github/last-commit/MartinPaulEve/django-caretaker) 
+![license](https://img.shields.io/github/license/martinpauleve/django-caretaker) ![activity](https://img.shields.io/github/last-commit/MartinPaulEve/django-caretaker) ![build status](https://github.com/MartinPaulEve/django-caretaker/actions/workflows/tests.yaml/badge.svg) 
 
 ![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white) ![Django](https://img.shields.io/badge/django-%23092E20.svg?style=for-the-badge&logo=django&logoColor=white) ![Git](https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white) ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white) ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black) ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![Terraform](https://img.shields.io/badge/terraform-%235835CC.svg?style=for-the-badge&logo=terraform&logoColor=white)
 
