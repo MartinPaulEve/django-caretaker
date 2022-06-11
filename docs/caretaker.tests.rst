@@ -7,10 +7,18 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   caretaker.tests.commands
+   caretaker.tests.frontend
 
 Submodules
 ----------
+
+caretaker.tests.caretaker\_main\_test module
+--------------------------------------------
+
+.. automodule:: caretaker.tests.caretaker_main_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 caretaker.tests.settings module
 -------------------------------

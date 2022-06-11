@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -76,12 +76,34 @@ WSGI_APPLICATION = 'djangoCaretaker.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+SYSTEM_ENV = os.environ.get('SYSTEM_ENV', None)
+if SYSTEM_ENV == 'PRODUCTION' or SYSTEM_ENV == 'STAGING':
+    DEBUG = False
+    SECRET_KEY = os.environ.get('SECRET_KEY', None)
+    CSRF_COOKIE_SECURE = True
+
+elif SYSTEM_ENV == 'GITHUB_WORKFLOW':
+    DEBUG = True
+    SECRET_KEY = 'TESTING_KEY_123'
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'github_actions',
+            'USER': 'postgres',
+            'PASSWORD': 'postgres',
+            'HOST': '127.0.0.1',
+            'PORT': '5432',
+        }
     }
-}
+elif SYSTEM_ENV == 'DEVELOPMENT':
+    DEBUG = True
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -128,7 +150,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # AWS backup IAM
 AWS_ACCESS_KEY_ID = 'DEFAULT'
 AWS_SECRET_ACCESS_KEY = 'DEFAULT'
-AWS_DEFAULT_REGION = 'eu-west-2'
+AWS_DEFAULT_REGION = 'us-east-1'
 
 CARETAKER_BACKUP_BUCKET = 'caretakertestbackup'
 CARETAKER_ADDITIONAL_BACKUP_PATHS = ['/home/martin/data', '/home/martin/Pics']

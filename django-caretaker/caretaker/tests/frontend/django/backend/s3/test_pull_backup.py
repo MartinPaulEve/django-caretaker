@@ -1,55 +1,52 @@
 import tempfile
 from pathlib import Path
 
-from django.test import TestCase
 from moto import mock_s3
 
+from caretaker.utils import file
 from caretaker.backend.abstract_backend import StoreOutcome
-from caretaker.utils.zip import create_zip_file
-from caretaker.management.commands.list_backups import Command as ListCommand
-from caretaker.management.commands.pull_backup import Command as PullCommand
-from caretaker.tests.utils import setup_test_class_s3, upload_temporary_file, \
+from caretaker.tests.frontend.django.backend.s3.caretaker_test import \
+    AbstractDjangoS3Test
+from caretaker.tests.utils import upload_temporary_file, \
     file_in_zip
+from caretaker.utils.zip import create_zip_file
 
 
 @mock_s3
-class TestPullBackup(TestCase):
+class TestPullBackupDjangoS3(AbstractDjangoS3Test):
     def setUp(self):
-        setup_test_class_s3(self)
-
         self.logger.info('Setup for pull_backup S3')
 
-        self.pull_command = self.frontend
-        self.list_command = self.frontend
+        self.create_bucket()
 
     def tearDown(self):
         self.logger.info('Teardown for pull_backup S3')
         pass
 
-    def test_pull(self):
+    def test(self):
         self.logger.info('Testing pull_backup S3')
         with tempfile.TemporaryDirectory() as temporary_directory_name:
 
-            temporary_directory_name = Path(
-                temporary_directory_name).expanduser()
+            temporary_directory_name = file.normalize_path(
+                temporary_directory_name)
 
             # set up a temporary file
             result, temporary_file = upload_temporary_file(
                 test_class=self,
-                temporary_directory_name=temporary_directory_name,
+                temporary_directory_name=str(temporary_directory_name),
                 contents=self.test_contents)
 
             self.assertTrue(result == StoreOutcome.STORED)
 
             # list the results to get a versionId
-            result = self.list_command.list_backups(
+            result = self.frontend.list_backups(
                 remote_key=self.json_key, bucket_name=self.bucket_name,
                 backend=self.backend
             )
 
             download_location = temporary_directory_name / self.json_key
 
-            result = self.pull_command.pull_backup(
+            result = self.frontend.pull_backup(
                 backup_version=result[0]['version_id'],
                 remote_key=self.json_key,
                 bucket_name=self.bucket_name,
@@ -76,7 +73,7 @@ class TestPullBackup(TestCase):
             self.assertTrue(zip_file.exists())
 
             # upload the file
-            self.command.push_backup(
+            self.frontend.push_backup(
                 backup_local_file=zip_file, remote_key=self.data_key,
                 backend=self.backend, bucket_name=self.bucket_name)
 
@@ -85,7 +82,7 @@ class TestPullBackup(TestCase):
             self.assertFalse(zip_file.exists())
 
             # list the results to get a versionId
-            result = self.list_command.list_backups(
+            result = self.frontend.list_backups(
                 remote_key=self.data_key, bucket_name=self.bucket_name,
                 backend=self.backend
             )
@@ -93,7 +90,7 @@ class TestPullBackup(TestCase):
             data_download_location = temporary_directory_name / self.json_key
 
             # pull it back down
-            self.pull_command.pull_backup(
+            self.frontend.pull_backup(
                 backup_version=result[0]['version_id'],
                 remote_key=self.data_key,
                 bucket_name=self.bucket_name,

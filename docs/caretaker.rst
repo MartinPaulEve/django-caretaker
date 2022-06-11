@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    caretaker.backend
+   caretaker.frontend
    caretaker.management
    caretaker.tests
    caretaker.utils

@@ -1,23 +1,25 @@
 import tempfile
 
-from django.test import TestCase
 from moto import mock_s3
 
 from caretaker.backend.abstract_backend import StoreOutcome
-from caretaker.tests.utils import setup_test_class_s3, upload_temporary_file
+from caretaker.tests.utils import upload_temporary_file
+from caretaker.tests.frontend.django.backend.s3.caretaker_test import \
+    AbstractDjangoS3Test
 
 
 @mock_s3
-class TestPushBackup(TestCase):
+class TestPushBackupDjangoS3(AbstractDjangoS3Test):
     def setUp(self):
-        setup_test_class_s3(self)
         self.logger.info('Setup for push_backup')
+
+        self.create_bucket()
 
     def tearDown(self):
         self.logger.info('Teardown for push_backup')
         pass
 
-    def test_push(self):
+    def test(self):
         self.logger.info('Testing push_backup')
 
         with tempfile.TemporaryDirectory() as temporary_directory_name:
@@ -42,7 +44,7 @@ class TestPushBackup(TestCase):
             with temporary_file.open('w') as out_file:
                 out_file.write('test2')
 
-            result = self.command.push_backup(
+            result = self.frontend.push_backup(
                 backup_local_file=temporary_file, remote_key=self.json_key,
                 backend=self.backend, bucket_name=self.bucket_name)
 
