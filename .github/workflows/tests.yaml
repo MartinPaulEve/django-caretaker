@@ -33,7 +33,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Show dir
-        run: ls
+        run: ls django-caretaker
       - name: Pwd
         run: pwd
       - name: Run tests
