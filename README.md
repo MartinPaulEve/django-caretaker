@@ -119,6 +119,7 @@ Reload the database:
 ## Credits
 * [AWS CLI](https://aws.amazon.com/cli/) for interactions with AWS.
 * [Django](https://www.djangoproject.com/) for the ORM and caching system.
+* [django-click](https://github.com/GaretJax/django-click) for command-line management commands.
 * [django-dbbackup](https://github.com/jazzband/django-dbbackup) for hints and tips.
 * [Git](https://git-scm.com/) from Linus Torvalds _et al_.
 * [.gitignore](https://github.com/github/gitignore) from Github.
