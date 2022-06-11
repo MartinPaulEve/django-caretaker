@@ -6,7 +6,14 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'djangoCaretaker.settings')
+    SYSTEM_ENV = os.environ.get('SYSTEM_ENV', None)
+
+    if SYSTEM_ENV == 'GITHUB_WORKFLOW':
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE',
+                              'caretaker.settings')
+    else:
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE',
+                              'djangoCaretaker.settings')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
