@@ -3,7 +3,6 @@ import tempfile
 from io import StringIO
 from pathlib import Path
 
-import humanize
 from botocore.exceptions import ClientError
 from django.conf import settings
 from django.core.management import call_command
@@ -134,17 +133,8 @@ class DjangoFrontend(AbstractFrontend):
         :param bucket_name: the name of the bucket/store
         :return: a list of dictionaries that contain the keys "last_modified", "version_id", and "size"
         """
-        logger = log.get_logger('caretaker')
-
         results = backend.versions(remote_key=remote_key,
                                    bucket_name=bucket_name)
-
-        for item in results:
-            logger.info('Backup from {}: {} [{}]'.format(
-                item['last_modified'],
-                item['version_id'],
-                humanize.naturalsize(item['size'])
-            ))
 
         return results
 

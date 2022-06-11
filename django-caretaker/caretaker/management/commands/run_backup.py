@@ -1,39 +1,43 @@
+import djclick as click
 from django.conf import settings
-from django.core.management.base import BaseCommand
 
-from caretaker.utils import log
+from caretaker.backend.abstract_backend import BackendNotFoundError
 from caretaker.frontend.abstract_frontend import FrontendFactory
+from caretaker.frontend.abstract_frontend import FrontendNotFoundError
+from caretaker.utils import log
 
 
-class Command(BaseCommand):
+@click.command()
+@click.argument('output-directory')
+@click.option('--additional-files', '-a', multiple=True,
+              help='Additional directories to add to the zip file',
+              type=str)
+@click.option('--backend-name', '-b',
+              help='The name of the backend to use',
+              type=str)
+@click.option('--frontend-name', '-f',
+              help='The name of the frontend to use',
+              type=str)
+def command(output_directory: str, additional_files: tuple, backend_name: str,
+            frontend_name: str) -> None:
     """
-    Installs cron tasks.
+    Pushes LOCAL-FILE to the latest version of REMOTE-KEY
     """
+    logger = log.get_logger('caretaker')
 
-    help = "Creates a backup set and pushes it to the remote store"
+    try:
+        frontend, backend = FrontendFactory.get_frontend_and_backend(
+            backend_name=backend_name,
+            frontend_name=frontend_name,
+            raise_on_none=True
+        )
 
-    def add_arguments(self, parser):
-        parser.add_argument('--output-directory')
-        parser.add_argument('-a', '--additional-files',
-                            action='append', required=False)
-
-    def handle(self, *args, **options):
-        """
-        Creates a backup set and pushes it to the remote store
-
-        :param args: the parser arguments
-        :param options: the parser options
-        :return: None
-        """
-
-        frontend, backend = FrontendFactory.get_frontend_and_backend()
-
-        if not backend:
-            logger = log.get_logger('caretaker')
-            logger.error('Unable to find a valid backend.')
-            return
-
-        frontend.run_backup(output_directory=options.get('output_directory'),
+        frontend.run_backup(output_directory=output_directory,
                             backend=backend,
                             bucket_name=settings.CARETAKER_BACKUP_BUCKET,
-                            path_list=options.get('additional_files'))
+                            path_list=list(additional_files))
+
+    except BackendNotFoundError:
+        logger.error('Unable to find a valid backend')
+    except FrontendNotFoundError:
+        logger.error('Unable to find a valid frontend')

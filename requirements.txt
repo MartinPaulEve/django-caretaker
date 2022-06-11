@@ -9,3 +9,4 @@ python-crontab==2.2.3
 sphinx
 sphinx-rtd-theme
 psycopg2-binary
+django-click

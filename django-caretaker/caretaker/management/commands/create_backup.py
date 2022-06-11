@@ -1,31 +1,31 @@
-from django.core.management.base import BaseCommand
+import djclick as click
 
-from caretaker.frontend.abstract_frontend import FrontendFactory
+from caretaker.frontend.abstract_frontend import FrontendFactory, \
+    FrontendNotFoundError
+
+from caretaker.utils import log
 
 
-class Command(BaseCommand):
+@click.command()
+@click.argument('output-directory')
+@click.option('--additional-files', '-a', multiple=True,
+              help='Additional directories to add to the zip file',
+              type=str)
+@click.option('--frontend-name', '-f',
+              help='The name of the frontend to use',
+              type=str)
+def command(output_directory: str, additional_files: tuple,
+            frontend_name: str = '') -> None:
     """
-    Installs cron tasks.
+    Create a local backup archive in the specified OUTPUT-DIRECTORY
     """
+    logger = log.get_logger('caretaker')
 
-    help = "Creates a local backup set"
+    try:
+        frontend = FrontendFactory.get_frontend(frontend_name=frontend_name,
+                                                raise_on_none=True)
 
-    def add_arguments(self, parser):
-        parser.add_argument('--output-directory')
-        parser.add_argument('-a', '--additional-files',
-                            action='append', required=False)
-
-    def handle(self, *args, **options):
-        """
-        Creates a set of local backup files via a command
-
-        :param args: the parser arguments
-        :param options: the parser options
-        :return: None
-        """
-
-        frontend = FrontendFactory.get_frontend()
-
-        frontend.create_backup(output_directory=options.get('output_directory'),
-                               path_list=options.get('additional_files'))
-
+        frontend.create_backup(output_directory=output_directory,
+                               path_list=list(additional_files))
+    except FrontendNotFoundError:
+        logger.error('Unable to find a valid frontend')
