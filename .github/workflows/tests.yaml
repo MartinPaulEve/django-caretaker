@@ -37,6 +37,7 @@ jobs:
       - name: Pwd
         run: pwd
       - name: Run tests
-        run: python3 django-caretaker/manage.py test
+        working-directory: ./django-caretaker
+        run: python3 manage.py test
         env:
           SYSTEM_ENV: GITHUB_WORKFLOW
