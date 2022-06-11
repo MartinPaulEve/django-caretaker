@@ -105,17 +105,13 @@ class DjangoFrontend(AbstractFrontend):
         logger = log.get_logger('caretaker')
         output_directory = file.normalize_path(output_directory)
 
-        # configure file paths
-        terraform_file = file.get_package_file(backend=backend,
-                                               filename='main.tf')
-
-        terraform_output_file = file.get_package_file(backend=backend,
-                                                      filename='output.tf')
-
-        file.output_terraform_file(
-            output_directory, terraform_file, 'main.tf')
-        file.output_terraform_file(
-            output_directory, terraform_output_file, 'output.tf')
+        for filename in backend.terraform_files:
+            terraform_file = file.get_package_file(backend=backend,
+                                                   filename=filename)
+            logger.info('Writing {} to {}'.format(filename, output_directory))
+            file.output_terraform_file(
+                output_directory=output_directory,
+                terraform_file=terraform_file, file_name=filename)
 
         logger.info('Terraform files were written to {}'.format(
             output_directory))

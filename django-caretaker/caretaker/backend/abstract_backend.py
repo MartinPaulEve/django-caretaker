@@ -23,21 +23,16 @@ class AbstractBackend(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
+    def terraform_files(self) -> list[str]:
+        pass
+
+    @property
+    @abc.abstractmethod
     def backend_name(self) -> str:
         """
         The display name of the backend
 
         :return: a string of the backend name
-        """
-        pass
-
-    @property
-    @abc.abstractmethod
-    def terraform_template(self) -> Path:
-        """
-        The directory that stores this backend's templates
-
-        :return: a pathlib.Path to the backend's templates'
         """
         pass
 
