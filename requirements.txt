@@ -11,3 +11,6 @@ sphinx-rtd-theme
 psycopg2-binary
 django-click
 coverage
+pytest
+pytest-cov
+pytest-django

@@ -29,11 +29,11 @@ class AbstractBackendTest(AbstractCaretakerTest, metaclass=abc.ABCMeta):
         pass
 
     @patch.multiple(AbstractBackend, __abstractmethods__=set())
-    def test(self):
+    def test(self) -> None:
         """
         This test exists solely to give full coverage to abstract backend
 
-        :return:
+        :return: None
         """
         instance = AbstractBackend()
 
@@ -48,4 +48,3 @@ class AbstractBackendTest(AbstractCaretakerTest, metaclass=abc.ABCMeta):
                               remote_key='', check_identical=True)
         instance.download_object(version_id='', bucket_name='', remote_key='',
                                  local_file=Path('~/'))
-

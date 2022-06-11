@@ -37,6 +37,10 @@ class TestCreateBackupDjangoS3(AbstractDjangoS3Test):
         backend = BackendFactory.get_backend('Amazon S3')
         self.assertIsNotNone(backend)
 
+        # test default
+        backend = BackendFactory.get_backend('')
+        self.assertIsNotNone(backend)
+
         # test that a non-existent backend doesn't load
         with self.assertRaises(BackendNotFoundError):
             BackendFactory.get_backend('Amazon S2', raise_on_none=True)
