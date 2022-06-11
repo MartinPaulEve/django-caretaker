@@ -1,6 +1,14 @@
 caretaker.backend.backends package
 ==================================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   caretaker.backend.backends.terraform_aws
+
 Submodules
 ----------
 

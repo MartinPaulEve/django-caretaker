@@ -1,31 +1,29 @@
 import tempfile
 
-from django.test import TestCase
 from moto import mock_s3
 
-from caretaker.management.commands.list_backups import Command as ListCommand
-from caretaker.tests.utils import setup_test_class_s3, upload_temporary_file
+from caretaker.tests.frontend.django.backend.s3.caretaker_test import \
+    AbstractDjangoS3Test
+from caretaker.tests.utils import upload_temporary_file
 
 
 @mock_s3
-class TestListBackups(TestCase):
+class TestListBackupsDjangoS3(AbstractDjangoS3Test):
     def setUp(self):
-        setup_test_class_s3(self)
-
         self.logger.info('Setup list_backups S3')
 
-        self.list_command = self.frontend
+        self.create_bucket()
 
     def tearDown(self):
         self.logger.info('Teardown list_backups S3')
         pass
 
-    def test_list(self):
+    def test(self):
         self.logger.info('Testing list_backups S3')
         with tempfile.TemporaryDirectory() as temporary_directory_name:
 
             # first test that we get nothing back
-            result = self.list_command.list_backups(
+            result = self.frontend.list_backups(
                 remote_key=self.json_key, bucket_name=self.bucket_name,
                 backend=self.backend
             )
@@ -39,7 +37,7 @@ class TestListBackups(TestCase):
                 contents=self.test_contents)
 
             # Now check that we get a result
-            result = self.list_command.list_backups(
+            result = self.frontend.list_backups(
                 remote_key=self.json_key, bucket_name=self.bucket_name,
                 backend=self.backend
             )
@@ -58,7 +56,7 @@ class TestListBackups(TestCase):
                 contents='test2')
 
             # first test that we get nothing back
-            result = self.list_command.list_backups(
+            result = self.frontend.list_backups(
                 remote_key=self.json_key, bucket_name=self.bucket_name,
                 backend=self.backend
             )
@@ -73,11 +71,11 @@ class TestListBackups(TestCase):
 
             # now run a final time with the same version and check that
             # the latest version is the same
-            self.command.push_backup(
+            self.frontend.push_backup(
                 backup_local_file=temporary_file, remote_key=self.json_key,
                 backend=self.backend, bucket_name=self.bucket_name)
 
-            result = self.list_command.list_backups(
+            result = self.frontend.list_backups(
                 remote_key=self.json_key, bucket_name=self.bucket_name,
                 backend=self.backend
             )

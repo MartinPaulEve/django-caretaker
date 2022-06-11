@@ -1,23 +1,20 @@
 import tempfile
-from pathlib import Path
 
 import django
-from django.test import TestCase
 from moto import mock_s3
 
 from caretaker.backend.abstract_backend import StoreOutcome
-from caretaker.management.commands.create_backup import Command as CreateCommand
-from caretaker.tests.utils import setup_test_class_s3, upload_temporary_file
+from caretaker.tests.frontend.django.backend.s3.caretaker_test import \
+    AbstractDjangoS3Test
+from caretaker.tests.utils import upload_temporary_file
 
 
 @mock_s3
-class TestCreateBackup(TestCase):
+class TestCreateBackupDjangoS3(AbstractDjangoS3Test):
     def setUp(self):
-        setup_test_class_s3(self)
-
         self.logger.info('Setup for create_backup')
 
-        self.create_command = self.frontend
+        self.create_bucket()
 
         django.setup()
 
@@ -25,14 +22,12 @@ class TestCreateBackup(TestCase):
         self.logger.info('Teardown for create_backup')
         pass
 
-    def test_create(self):
+    def test(self):
         self.logger.info('Testing create_backup')
 
         with tempfile.TemporaryDirectory() as temporary_directory_name:
-            temporary_directory_name = Path(
-                temporary_directory_name).expanduser()
-
             # set up a temporary file
+            self.logger.info('Uploading temporary file')
             result, temporary_file = upload_temporary_file(
                 test_class=self,
                 temporary_directory_name=temporary_directory_name,
@@ -41,7 +36,7 @@ class TestCreateBackup(TestCase):
             self.assertTrue(result == StoreOutcome.STORED)
 
             # create a backup record including this directory
-            json_file, data_file = self.create_command.create_backup(
+            json_file, data_file = self.frontend.create_backup(
                 output_directory=temporary_directory_name,
                 path_list=[temporary_directory_name]
             )
