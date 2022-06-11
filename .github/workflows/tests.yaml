@@ -37,6 +37,6 @@ jobs:
       - name: Pwd
           run: pwd
       - name: Run tests
-        run: python manage.py test
+          run: python manage.py test
         env:
           SYSTEM_ENV: GITHUB_WORKFLOW
