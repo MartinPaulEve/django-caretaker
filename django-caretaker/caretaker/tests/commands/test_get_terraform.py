@@ -16,7 +16,7 @@ class TestTerraformOutput(TestCase):
 
         self.logger.info('Setup for Terraform test')
 
-        self.command = TerraformCommand()
+        self.command = self.frontend
 
     def tearDown(self):
         self.logger.info('Teardown Terraform test')

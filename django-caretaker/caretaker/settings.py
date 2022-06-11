@@ -134,3 +134,6 @@ CARETAKER_BACKUP_BUCKET = 'caretakertestbackup'
 CARETAKER_ADDITIONAL_BACKUP_PATHS = ['/home/martin/data', '/home/martin/Pics']
 CARETAKER_BACKEND = 'Amazon S3'
 CARETAKER_BACKENDS = ['caretaker.backend.backends.s3']
+CARETAKER_FRONTEND = 'Django'
+CARETAKER_FRONTENDS = ['caretaker.frontend.frontends.django']
+

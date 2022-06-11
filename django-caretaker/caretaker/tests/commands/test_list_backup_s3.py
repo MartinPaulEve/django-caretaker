@@ -14,7 +14,7 @@ class TestListBackups(TestCase):
 
         self.logger.info('Setup list_backups S3')
 
-        self.list_command = ListCommand()
+        self.list_command = self.frontend
 
     def tearDown(self):
         self.logger.info('Teardown list_backups S3')

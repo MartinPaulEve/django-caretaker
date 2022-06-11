@@ -21,9 +21,9 @@ class TestRunBackup(TestCase):
 
         self.logger.info('Setup for run_backup S3')
 
-        self.run_command = RunCommand()
-        self.pull_command = PullCommand()
-        self.list_command = ListCommand()
+        self.run_command = self.frontend
+        self.pull_command = self.frontend
+        self.list_command = self.frontend
 
         django.setup()
 
