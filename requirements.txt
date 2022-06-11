@@ -8,4 +8,4 @@ moto
 python-crontab==2.2.3
 sphinx
 sphinx-rtd-theme
-recommonmark
+psycopg2-binary
