@@ -33,10 +33,10 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Show dir
-          run: ls
+        run: ls
       - name: Pwd
-          run: pwd
+        run: pwd
       - name: Run tests
-          run: python manage.py test
+        run: python manage.py test
         env:
           SYSTEM_ENV: GITHUB_WORKFLOW
