@@ -20,13 +20,8 @@ def get_backend():
 
 class S3Backend(AbstractBackend):
     @property
-    def terraform_template(self) -> Path:
-        """
-        The directory that stores this backend's templates
-
-        :return: a pathlib.Path to the backend's templates'
-        """
-        return Path('./caretaker/backend/backends/terraform_aws').resolve()
+    def terraform_files(self) -> list[str]:
+        return ['main.tf', 'output.tf']
 
     @property
     def terraform_template_module(self) -> ModuleType:
