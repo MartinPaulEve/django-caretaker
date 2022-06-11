@@ -4,11 +4,11 @@ from pathlib import Path
 
 import django.test
 
-from abstract_backend import AbstractBackend
+from caretaker.backend.abstract_backend import AbstractBackend
 
 from unittest.mock import patch
 
-from caretaker_main_test import AbstractCaretakerTest
+from caretaker.tests.caretaker_main_test import AbstractCaretakerTest
 
 from caretaker.utils import log
 

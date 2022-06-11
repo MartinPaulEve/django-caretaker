@@ -1,7 +1,7 @@
 import django
 from moto import mock_s3
 
-import settings
+from django.conf import settings
 from caretaker.backend.abstract_backend import BackendFactory, \
     BackendNotFoundError
 from caretaker.tests.frontend.django.backend.s3.caretaker_test import \
