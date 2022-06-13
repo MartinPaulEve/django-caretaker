@@ -45,7 +45,6 @@ class TestListBackupsDjangoS3(AbstractDjangoS3Test):
             )
 
             self.assertIsNotNone(result)
-            version = None
 
             self.assertTrue(result[0]['size'] == 4)
             version = result[0]['version_id']

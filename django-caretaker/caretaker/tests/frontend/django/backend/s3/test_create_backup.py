@@ -54,6 +54,9 @@ class TestCreateBackupDjangoS3(AbstractDjangoS3Test):
                     raise_on_error=True
                 )
 
+            settings.MEDIA_ROOT = ''
+            settings.CARETAKER_ADDITIONAL_BACKUP_PATHS = []
+
             json_file, data_file = self.frontend.create_backup(
                 output_directory='',
                 path_list=[temporary_directory_name],
@@ -63,7 +66,7 @@ class TestCreateBackupDjangoS3(AbstractDjangoS3Test):
             self.assertIsNone(json_file)
             self.assertIsNone(data_file)
 
-            # now inject a media root into settings
+            # now inject a dead media root into settings
             settings.MEDIA_ROOT = '/deadpath'
 
             with self.assertRaises(FileNotFoundError):
@@ -72,9 +75,10 @@ class TestCreateBackupDjangoS3(AbstractDjangoS3Test):
                     path_list=[temporary_directory_name], raise_on_error=True
                 )
 
+            tmp_filename = 'new.file'
+
             with tempfile.TemporaryDirectory() as temporary_directory_name_two:
                 settings.MEDIA_ROOT = temporary_directory_name_two
-                tmp_filename = 'new.file'
 
                 with (Path(temporary_directory_name) /
                       tmp_filename).open('w') as out_file:
@@ -88,3 +92,22 @@ class TestCreateBackupDjangoS3(AbstractDjangoS3Test):
 
                 self.assertTrue(file_in_zip(zip_file=data_file,
                                             filename=tmp_filename))
+
+            settings.MEDIA_ROOT = ''
+
+            with tempfile.TemporaryDirectory() as temporary_directory_name_two:
+                settings.CARETAKER_ADDITIONAL_BACKUP_PATHS = \
+                    [temporary_directory_name_two]
+
+                with (Path(temporary_directory_name) /
+                      tmp_filename).open('w') as out_file:
+
+                    out_file.write('test')
+
+                    json_file, data_file = self.frontend.create_backup(
+                        output_directory=temporary_directory_name,
+                        path_list=[temporary_directory_name]
+                    )
+
+                    self.assertTrue(file_in_zip(zip_file=data_file,
+                                                filename=tmp_filename))

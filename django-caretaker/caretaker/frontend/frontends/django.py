@@ -106,7 +106,7 @@ class DjangoFrontend(AbstractFrontend):
                 settings.MEDIA_ROOT and settings.MEDIA_ROOT not in path_list:
             path_list.append(settings.MEDIA_ROOT)
 
-        if hasattr(settings, 'ADDITIONAL_BACKUP_PATHS') \
+        if hasattr(settings, 'CARETAKER_ADDITIONAL_BACKUP_PATHS') \
                 and settings.CARETAKER_ADDITIONAL_BACKUP_PATHS \
                 and settings.CARETAKER_ADDITIONAL_BACKUP_PATHS not in path_list:
             path_list.extend(settings.CARETAKER_ADDITIONAL_BACKUP_PATHS)
@@ -195,14 +195,13 @@ class DjangoFrontend(AbstractFrontend):
 
         out_file = file.normalize_path(out_file)
 
-        download = backend.download_object(local_file=out_file,
-                                           remote_key=remote_key,
-                                           version_id=backup_version,
-                                           bucket_name=bucket_name,
-                                           raise_on_error=raise_on_error
-                                           )
-
         try:
+            download = backend.download_object(local_file=out_file,
+                                               remote_key=remote_key,
+                                               version_id=backup_version,
+                                               bucket_name=bucket_name,
+                                               raise_on_error=raise_on_error
+                                               )
             if download:
 
                 return out_file
@@ -246,15 +245,15 @@ class DjangoFrontend(AbstractFrontend):
                                       check_identical=check_identical,
                                       raise_on_error=raise_on_error)
 
-        match result:
-            case StoreOutcome.STORED:
-                logger.info('Stored backup.')
-            case StoreOutcome.FAILED:
-                logger.info('Failed to store backup.')
-            case StoreOutcome.IDENTICAL:
-                logger.info('Last version was identical.')
-
-        return result
+        if result == StoreOutcome.STORED:
+            logger.info('Stored backup.')
+            return result
+        elif result == StoreOutcome.FAILED:
+            logger.info('Failed to store backup.')
+            return result
+        else:
+            logger.info('Last version was identical.')
+            return result
 
     @staticmethod
     def run_backup(output_directory: str, data_file: str = 'data.json',
@@ -278,8 +277,7 @@ class DjangoFrontend(AbstractFrontend):
         """
         logger = log.get_logger('caretaker-django')
 
-        if not path_list:
-            path_list = []
+        path_list = path_list if path_list else []
 
         if not output_directory:
             logger.error('No output directory specified')
