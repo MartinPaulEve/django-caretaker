@@ -4,6 +4,13 @@ branch = True
 source = caretaker
 
 [report]
+omit =
+    settings.py
+    manage.py
+    setup.py
+    caretaker/settings.py
+    caretaker/urls.py
+
 # Regexes for lines to exclude from consideration
 exclude_lines =
     # Have to re-enable the standard pragma

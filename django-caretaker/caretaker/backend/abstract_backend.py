@@ -16,7 +16,6 @@ class StoreOutcome(Enum):
 
 
 class AbstractBackend(metaclass=abc.ABCMeta):
-
     client = None
 
     @abc.abstractmethod
@@ -49,19 +48,22 @@ class AbstractBackend(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def versions(self, bucket_name: str, remote_key: str = '') -> list[dict]:
+    def versions(self, bucket_name: str, remote_key: str = '',
+                 raise_on_error: bool = False) -> list[dict]:
         """
         List the versions of an object
 
         :param remote_key: the remote key (filename) to list
         :param bucket_name: the remote bucket name
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a list of dictionaries containing 'version_id', 'last_modified', and 'size'
         """
         pass
 
     @abc.abstractmethod
     def store_object(self, local_file: Path, bucket_name: str,
-                     remote_key: str, check_identical: bool) -> StoreOutcome:
+                     remote_key: str, check_identical: bool,
+                     raise_on_error: bool = False) -> StoreOutcome:
         """
         Store an object remotely
 
@@ -69,6 +71,7 @@ class AbstractBackend(metaclass=abc.ABCMeta):
         :param bucket_name: the remote bucket name
         :param remote_key: the remote key (filename) of the object
         :param check_identical: whether to check if the last version is already the same as this version
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a response enum StoreOutcome
         """
         pass
@@ -151,5 +154,5 @@ class BackendFactory:
         return None
 
 
-class BackendNotFoundError (Exception):
+class BackendNotFoundError(Exception):
     pass

@@ -120,17 +120,20 @@ class DjangoFrontend(AbstractFrontend):
 
     @staticmethod
     def list_backups(remote_key: str, backend: AbstractBackend,
-                     bucket_name: str) -> list[dict]:
+                     bucket_name: str, raise_on_error: bool = False) \
+            -> list[dict]:
         """
         Lists backups in the remote store
 
         :param remote_key: the remote key (filename)
         :param backend: the backend to use
         :param bucket_name: the name of the bucket/store
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a list of dictionaries that contain the keys "last_modified", "version_id", and "size"
         """
         results = backend.versions(remote_key=remote_key,
-                                   bucket_name=bucket_name)
+                                   bucket_name=bucket_name,
+                                   raise_on_error=raise_on_error)
 
         return results
 
@@ -173,7 +176,9 @@ class DjangoFrontend(AbstractFrontend):
 
     @staticmethod
     def push_backup(backup_local_file: str, remote_key: str,
-                    backend: AbstractBackend, bucket_name: str) -> StoreOutcome:
+                    backend: AbstractBackend, bucket_name: str,
+                    raise_on_error: bool = False,
+                    check_identical: bool = True) -> StoreOutcome:
         """
         Push a backup to the remote store
 
@@ -181,6 +186,8 @@ class DjangoFrontend(AbstractFrontend):
         :param remote_key: the remote key (filename)
         :param backend: the backend to use
         :param bucket_name: the name of the bucket/store
+        :param check_identical: check whether the file exists in the remote store
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a StoreOutcome
         """
         logger = log.get_logger('caretaker')
@@ -190,7 +197,8 @@ class DjangoFrontend(AbstractFrontend):
         result = backend.store_object(remote_key=remote_key,
                                       bucket_name=bucket_name,
                                       local_file=backup_local_file,
-                                      check_identical=True)
+                                      check_identical=check_identical,
+                                      raise_on_error=raise_on_error)
 
         match result:
             case StoreOutcome.STORED:

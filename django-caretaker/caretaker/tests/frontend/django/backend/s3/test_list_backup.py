@@ -1,10 +1,12 @@
 import tempfile
+from unittest.mock import patch
 
+import botocore.exceptions
 from moto import mock_s3
 
 from caretaker.tests.frontend.django.backend.s3.caretaker_test import \
     AbstractDjangoS3Test
-from caretaker.tests.utils import upload_temporary_file
+from caretaker.tests.utils import upload_temporary_file, boto3_error
 
 
 @mock_s3
@@ -85,3 +87,24 @@ class TestListBackupsDjangoS3(AbstractDjangoS3Test):
             if result:
                 self.assertTrue(
                     result[0]['version_id'] == version)
+
+            # patch for error handling
+            with patch(
+                    'botocore.client.BaseClient._make_api_call',
+                    side_effect=boto3_error('upload_file')):
+
+                # test raises on error
+                with self.assertRaises(botocore.exceptions.ClientError):
+                    result = self.frontend.list_backups(
+                        remote_key=self.json_key, bucket_name=self.bucket_name,
+                        backend=self.backend, raise_on_error=True
+                    )
+
+                # test returns silent empty list
+                result = self.frontend.list_backups(
+                    remote_key=self.json_key, bucket_name=self.bucket_name,
+                    backend=self.backend
+                )
+
+                self.assertEqual(result, [])
+

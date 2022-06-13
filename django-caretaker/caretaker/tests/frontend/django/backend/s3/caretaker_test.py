@@ -10,6 +10,15 @@ from caretaker.utils import log
 
 
 class AbstractDjangoS3Test(AbstractCaretakerTest, metaclass=abc.ABCMeta):
+
+    json_key = 'test.json'
+    dump_key = 'data.json'
+    data_key = 'media.zip'
+    test_contents = 'test'
+
+    backend = None
+    frontend = None
+
     def __init__(self, logger: logging.Logger | None = None):
         super().__init__(logger=logger, method_name='test')
 

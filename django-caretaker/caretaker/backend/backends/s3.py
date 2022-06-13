@@ -8,6 +8,7 @@ from types import ModuleType
 
 import boto3
 import botocore.exceptions
+from boto3.exceptions import S3UploadFailedError
 from django.conf import settings
 
 from caretaker.utils import log
@@ -52,12 +53,14 @@ class S3Backend(AbstractBackend):
         """
         return 'Amazon S3'
 
-    def versions(self, bucket_name: str, remote_key: str = '') -> list[dict]:
+    def versions(self, bucket_name: str, remote_key: str = '',
+                 raise_on_error: bool = False) -> list[dict]:
         """
         List the versions of an object in an S3 bucket
 
         :param remote_key: the remote key (filename) to list
         :param bucket_name: the remote bucket name
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a list of dictionaries containing 'version_id', 'last_modified', and 'size'
         """
         try:
@@ -79,10 +82,15 @@ class S3Backend(AbstractBackend):
                 'Unable to retrieve version list of {} from {} in {} '
                 '({})'.format(remote_key, bucket_name, self.backend_name, ce)
             )
+
+            if raise_on_error:
+                raise ce
+
             return []
 
     def store_object(self, local_file: Path, bucket_name: str,
-                     remote_key: str, check_identical: bool) -> StoreOutcome:
+                     remote_key: str, check_identical: bool,
+                     raise_on_error: bool = False) -> StoreOutcome:
         """
         Store an object remotely
 
@@ -90,6 +98,7 @@ class S3Backend(AbstractBackend):
         :param bucket_name: the remote bucket name
         :param remote_key: the remote key (filename) of the object
         :param check_identical: whether to check if the last version is already the same as this version
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a response enum StoreOutcome
         """
 
@@ -125,8 +134,10 @@ class S3Backend(AbstractBackend):
 
             self.logger.info('Backup {} stored as {}'.format(
                 local_file, remote_key))
-        except botocore.exceptions.ClientError:
+        except (botocore.exceptions.ClientError, S3UploadFailedError) as ce:
             self.logger.error('There was a problem storing the backup.')
+            if raise_on_error:
+                raise ce
             return StoreOutcome.FAILED
 
         return StoreOutcome.STORED

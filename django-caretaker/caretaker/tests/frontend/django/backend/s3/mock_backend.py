@@ -54,18 +54,21 @@ class MockS3Backend(AbstractBackend):
         """
         return 'Mock S3'
 
-    def versions(self, bucket_name: str, remote_key: str = '') -> list[dict]:
+    def versions(self, bucket_name: str, remote_key: str = '',
+                 raise_on_error: bool = False) -> list[dict]:
         """
         List the versions of an object in an S3 bucket
 
         :param remote_key: the remote key (filename) to list
         :param bucket_name: the remote bucket name
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a list of dictionaries containing 'version_id', 'last_modified', and 'size'
         """
         return []
 
     def store_object(self, local_file: Path, bucket_name: str,
-                     remote_key: str, check_identical: bool) -> StoreOutcome:
+                     remote_key: str, check_identical: bool,
+                     raise_on_error: bool = False) -> StoreOutcome:
         """
         Store an object remotely
 
@@ -73,6 +76,7 @@ class MockS3Backend(AbstractBackend):
         :param bucket_name: the remote bucket name
         :param remote_key: the remote key (filename) of the object
         :param check_identical: whether to check if the last version is already the same as this version
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a response enum StoreOutcome
         """
         return StoreOutcome.STORED

@@ -59,13 +59,15 @@ class AbstractFrontend(metaclass=abc.ABCMeta):
     @staticmethod
     @abc.abstractmethod
     def list_backups(remote_key: str, backend: AbstractBackend,
-                     bucket_name: str) -> list[dict]:
+                     bucket_name: str, raise_on_error: bool = False) \
+            -> list[dict]:
         """
         Lists backups in the remote store
 
         :param remote_key: the remote key (filename)
         :param backend: the backend to use
         :param bucket_name: the name of the bucket/store
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a list of dictionaries that contain the keys "last_modified", "version_id", and "size"
         """
         pass
@@ -90,7 +92,10 @@ class AbstractFrontend(metaclass=abc.ABCMeta):
     @staticmethod
     @abc.abstractmethod
     def push_backup(backup_local_file: str, remote_key: str,
-                    backend: AbstractBackend, bucket_name: str) -> StoreOutcome:
+                    backend: AbstractBackend, bucket_name: str,
+                    raise_on_error=False,
+                    check_identical: bool = True
+                    ) -> StoreOutcome:
         """
         Push a backup to the remote store
 
@@ -98,6 +103,8 @@ class AbstractFrontend(metaclass=abc.ABCMeta):
         :param remote_key: the remote key (filename)
         :param backend: the backend to use
         :param bucket_name: the name of the bucket/store
+        :param check_identical: check whether the file exists in the remote store
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a StoreOutcome
         """
         pass

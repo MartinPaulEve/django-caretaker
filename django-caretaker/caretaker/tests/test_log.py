@@ -32,20 +32,11 @@ class LoggerDefaultTestCase(TestCase):
         logger.warning("a warning")
         logger.error("an error")
         logger.critical("a critical error")
-        if django.VERSION < (1, 9):
-            captures.check(
-                ("django", "DEBUG", "a noise"),
-                ("django", "INFO", "a message"),
-                ("django", "WARNING", "a warning"),
-                ("django", "ERROR", "an error"),
-                ("django", "CRITICAL", "a critical error"),
-            )
-        else:
-            captures.check(
-                ("django", "INFO", "a message"),
-                ("django", "WARNING", "a warning"),
-                ("django", "ERROR", "an error"),
-                ("django", "CRITICAL", "a critical error"),
+        captures.check(
+            ("django", "INFO", "a message"),
+            ("django", "WARNING", "a warning"),
+            ("django", "ERROR", "an error"),
+            ("django", "CRITICAL", "a critical error"),
             )
 
     @log_capture()
