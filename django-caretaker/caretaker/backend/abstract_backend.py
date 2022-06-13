@@ -17,6 +17,8 @@ class StoreOutcome(Enum):
 
 class AbstractBackend(metaclass=abc.ABCMeta):
 
+    client = None
+
     @abc.abstractmethod
     def __init__(self, logger: logging.Logger | None = None):
         self.logger = logger

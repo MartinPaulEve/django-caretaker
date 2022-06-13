@@ -38,7 +38,7 @@ class S3Backend(AbstractBackend):
 
         self.logger = log.get_logger('caretaker-amazon-s3')
 
-        self.s3 = boto3.client(
+        self.client = boto3.client(
             's3',
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
@@ -61,8 +61,8 @@ class S3Backend(AbstractBackend):
         :return: a list of dictionaries containing 'version_id', 'last_modified', and 'size'
         """
         try:
-            versions = self.s3.list_object_versions(Bucket=bucket_name,
-                                                    Prefix=remote_key)
+            versions = self.client.list_object_versions(Bucket=bucket_name,
+                                                        Prefix=remote_key)
 
             if versions and 'Versions' in versions:
                 final_versions = [
@@ -100,9 +100,9 @@ class S3Backend(AbstractBackend):
                 with tempfile.TemporaryDirectory() as tmp:
                     path = Path(tmp) / 'latest'
 
-                    self.s3.download_file(Filename=str(path),
-                                          Bucket=bucket_name,
-                                          Key=remote_key)
+                    self.client.download_file(Filename=str(path),
+                                              Bucket=bucket_name,
+                                              Key=remote_key)
 
                     # byte-by-byte comparison
                     # may be slow on big files
@@ -120,8 +120,8 @@ class S3Backend(AbstractBackend):
 
         try:
             # upload the latest version to S3
-            self.s3.upload_file(Filename=str(local_file),
-                                Bucket=bucket_name, Key=remote_key)
+            self.client.upload_file(Filename=str(local_file),
+                                    Bucket=bucket_name, Key=remote_key)
 
             self.logger.info('Backup {} stored as {}'.format(
                 local_file, remote_key))
@@ -149,10 +149,10 @@ class S3Backend(AbstractBackend):
 
             response_object = io.BytesIO()
 
-            self.s3.download_fileobj(Bucket=settings.CARETAKER_BACKUP_BUCKET,
-                                     Key=remote_key,
-                                     Fileobj=response_object,
-                                     ExtraArgs={'VersionId': version_id})
+            self.client.download_fileobj(Bucket=settings.CARETAKER_BACKUP_BUCKET,
+                                         Key=remote_key,
+                                         Fileobj=response_object,
+                                         ExtraArgs={'VersionId': version_id})
 
             response_object.seek(0)
 
@@ -179,10 +179,10 @@ class S3Backend(AbstractBackend):
         out_file = Path(local_file).expanduser()
 
         try:
-            self.s3.download_file(Filename=str(out_file),
-                                  Bucket=bucket_name,
-                                  Key=remote_key,
-                                  ExtraArgs={'VersionId': version_id})
+            self.client.download_file(Filename=str(out_file),
+                                      Bucket=bucket_name,
+                                      Key=remote_key,
+                                      ExtraArgs={'VersionId': version_id})
 
             self.logger.info('Saved version {} of {} to {}'.format(
                 version_id,
