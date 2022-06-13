@@ -3,13 +3,14 @@ import tempfile
 from pathlib import Path
 
 import django
+from django.conf import settings
 from moto import mock_s3
 
-from caretaker.utils import file
 from caretaker.backend.abstract_backend import StoreOutcome
 from caretaker.tests.frontend.django.backend.s3.caretaker_test import \
     AbstractDjangoS3Test
 from caretaker.tests.utils import upload_temporary_file, file_in_zip
+from caretaker.utils import file
 
 
 @mock_s3
@@ -40,7 +41,12 @@ class TestRunBackupDjangoS3(AbstractDjangoS3Test):
 
             self.assertTrue(result == StoreOutcome.STORED)
 
+            settings.MEDIA_ROOT = ''
+            settings.CARETAKER_ADDITIONAL_BACKUP_PATHS = []
+
             # create a backup record including this directory
+            self.logger.info('Creating backup in {}'.format(
+                temporary_directory_name))
             self.frontend.run_backup(
                 output_directory=temporary_directory_name,
                 path_list=[temporary_directory_name],
@@ -70,10 +76,7 @@ class TestRunBackupDjangoS3(AbstractDjangoS3Test):
             with result.open('r') as in_file:
                 response = in_file.read()
 
-                try:
-                    json.loads(response)
-                except json.JSONDecodeError:
-                    self.fail('The stored object could not be JSON decoded')
+                json.loads(response)
 
             # now check the archive zip
             result = self.frontend.list_backups(

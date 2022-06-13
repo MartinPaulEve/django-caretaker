@@ -3,6 +3,7 @@ import logging
 import tempfile
 from io import StringIO
 from pathlib import Path
+from time import sleep
 
 from botocore.exceptions import ClientError
 from django.conf import settings
@@ -57,8 +58,9 @@ class DjangoFrontend(AbstractFrontend):
     @staticmethod
     def create_backup(output_directory: str, data_file: str = 'data.json',
                       archive_file: str = 'media.zip',
-                      path_list: list | None = None) -> (Path | None,
-                                                         Path | None):
+                      path_list: list | None = None,
+                      raise_on_error: bool = False) -> (Path | None,
+                                                        Path | None):
         """
         Creates a set of local backup files
 
@@ -66,18 +68,25 @@ class DjangoFrontend(AbstractFrontend):
         :param data_file: the output data file (e.g. data.json)
         :param archive_file: the output archive file (e.g. media.zip)
         :param path_list: the list of paths to bundle in the zip
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a 2-tuple of pathlib.Path objects to the data file and archive file
         """
         logger = log.get_logger('caretaker')
 
         if not output_directory:
             logger.error('No output directory specified')
+
+            if raise_on_error:
+                raise FileNotFoundError
+
             return None, None
 
-        output_directory = file.normalize_path(output_directory)
-
         # create the directory if needed
+        output_directory = Path(output_directory)
+
         output_directory.mkdir(parents=True, exist_ok=True)
+
+        output_directory = file.normalize_path(output_directory)
 
         # setup redirect so that we can pipe the output of dump data to
         # our output file
@@ -102,8 +111,16 @@ class DjangoFrontend(AbstractFrontend):
                 and settings.CARETAKER_ADDITIONAL_BACKUP_PATHS not in path_list:
             path_list.extend(settings.CARETAKER_ADDITIONAL_BACKUP_PATHS)
 
-        path_list_final = [Path(path).expanduser().resolve(strict=True)
-                           for path in path_list]
+        path_list_final = []
+
+        for path in path_list:
+            path = file.normalize_path(path)
+
+            path_list_final.append(file.normalize_path(path))
+
+            if not path.exists():
+                logger.error('Could not find {}'.format(path))
+                raise FileNotFoundError()
 
         zip_file = create_zip_file(
             input_paths=path_list_final,
@@ -244,8 +261,9 @@ class DjangoFrontend(AbstractFrontend):
                    archive_file: str = 'media.zip',
                    path_list: list | None = None,
                    backend: AbstractBackend | None = None,
-                   bucket_name: str | None = None) -> (Path | None,
-                                                       Path | None):
+                   bucket_name: str | None = None,
+                   raise_on_error: bool = False) -> (Path | None,
+                                                     Path | None):
         """
         Creates a backup set and pushes it to the remote store
 
@@ -255,15 +273,20 @@ class DjangoFrontend(AbstractFrontend):
         :param path_list: the list of paths to bundle in the zip
         :param backend: the backend to use
         :param bucket_name: the name of the bucket/store
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: 2-tuple of pathlib.Path objects to the data file & archive file
         """
-        logger = log.get_logger('caretaker')
+        logger = log.get_logger('caretaker-django')
 
         if not path_list:
             path_list = []
 
         if not output_directory:
             logger.error('No output directory specified')
+
+            if raise_on_error:
+                raise FileNotFoundError
+
             return None, None
 
         # set up a temporary directory
@@ -277,10 +300,12 @@ class DjangoFrontend(AbstractFrontend):
             # push the data
             DjangoFrontend.push_backup(backup_local_file=json_file,
                                        remote_key=data_file,
-                                       backend=backend, bucket_name=bucket_name)
+                                       backend=backend, bucket_name=bucket_name,
+                                       raise_on_error=raise_on_error)
             DjangoFrontend.push_backup(backup_local_file=zip_file,
                                        remote_key=archive_file,
-                                       backend=backend, bucket_name=bucket_name)
+                                       backend=backend, bucket_name=bucket_name,
+                                       raise_on_error=raise_on_error)
 
             logger.info('Pushed backups to remote store')
             return json_file, archive_file

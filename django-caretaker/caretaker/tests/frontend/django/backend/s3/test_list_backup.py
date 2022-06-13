@@ -47,9 +47,8 @@ class TestListBackupsDjangoS3(AbstractDjangoS3Test):
             self.assertIsNotNone(result)
             version = None
 
-            if result:
-                self.assertTrue(result[0]['size'] == 4)
-                version = result[0]['version_id']
+            self.assertTrue(result[0]['size'] == 4)
+            version = result[0]['version_id']
 
             # now test that when we add a new file it versions it
             result, temporary_file = upload_temporary_file(
@@ -65,11 +64,10 @@ class TestListBackupsDjangoS3(AbstractDjangoS3Test):
 
             self.assertIsNotNone(result)
 
-            if result:
-                self.assertTrue(result[0]['size'] == 5)
-                self.assertFalse(result[0]['version_id'] == 'null')
-                self.assertFalse(version == result[0]['version_id'])
-                version = result[0]['version_id']
+            self.assertTrue(result[0]['size'] == 5)
+            self.assertFalse(result[0]['version_id'] == 'null')
+            self.assertFalse(version == result[0]['version_id'])
+            version = result[0]['version_id']
 
             # now run a final time with the same version and check that
             # the latest version is the same
@@ -84,9 +82,7 @@ class TestListBackupsDjangoS3(AbstractDjangoS3Test):
 
             self.assertIsNotNone(result)
 
-            if result:
-                self.assertTrue(
-                    result[0]['version_id'] == version)
+            self.assertTrue(result[0]['version_id'] == version)
 
             # patch for error handling
             with patch(
@@ -107,4 +103,3 @@ class TestListBackupsDjangoS3(AbstractDjangoS3Test):
                 )
 
                 self.assertEqual(result, [])
-
