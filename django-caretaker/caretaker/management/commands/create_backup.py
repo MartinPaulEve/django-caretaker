@@ -19,13 +19,14 @@ def command(output_directory: str, additional_files: tuple,
     """
     Create a local backup archive in the specified OUTPUT-DIRECTORY
     """
-    logger = log.get_logger('caretaker')
+    logger = log.get_logger('caretaker-command')
 
     try:
         frontend = FrontendFactory.get_frontend(frontend_name=frontend_name,
                                                 raise_on_none=True)
 
         frontend.create_backup(output_directory=output_directory,
-                               path_list=list(additional_files))
+                               path_list=list(additional_files),
+                               raise_on_error=True)
     except FrontendNotFoundError:
         logger.error('Unable to find a valid frontend')

@@ -71,7 +71,7 @@ class DjangoFrontend(AbstractFrontend):
         :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a 2-tuple of pathlib.Path objects to the data file and archive file
         """
-        logger = log.get_logger('caretaker')
+        logger = log.get_logger('caretaker-django')
 
         if not output_directory:
             logger.error('No output directory specified')
@@ -104,11 +104,13 @@ class DjangoFrontend(AbstractFrontend):
 
         if hasattr(settings, 'MEDIA_ROOT') and \
                 settings.MEDIA_ROOT and settings.MEDIA_ROOT not in path_list:
+            logger.info('Appending MEDIA_ROOT')
             path_list.append(settings.MEDIA_ROOT)
 
         if hasattr(settings, 'CARETAKER_ADDITIONAL_BACKUP_PATHS') \
                 and settings.CARETAKER_ADDITIONAL_BACKUP_PATHS \
                 and settings.CARETAKER_ADDITIONAL_BACKUP_PATHS not in path_list:
+            logger.info('Appending CARETAKER_ADDITIONAL_BACKUP_PATHS')
             path_list.extend(settings.CARETAKER_ADDITIONAL_BACKUP_PATHS)
 
         path_list_final = []
@@ -122,8 +124,10 @@ class DjangoFrontend(AbstractFrontend):
                 logger.error('Could not find {}'.format(path))
                 raise FileNotFoundError()
 
+        logger.info('Paths to be zipped: '.format(path_list_final))
+
         zip_file = create_zip_file(
-            input_paths=path_list_final,
+            input_paths=list(path_list_final),
             output_file=Path(output_directory / archive_file)
         )
 
@@ -246,7 +250,7 @@ class DjangoFrontend(AbstractFrontend):
                                       raise_on_error=raise_on_error)
 
         if result == StoreOutcome.STORED:
-            logger.info('Stored backup.')
+            logger.info('Stored backup ({}).'.format(remote_key))
             return result
         elif result == StoreOutcome.FAILED:
             logger.info('Failed to store backup.')

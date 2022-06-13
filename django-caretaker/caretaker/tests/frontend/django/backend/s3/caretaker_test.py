@@ -3,6 +3,7 @@ import logging
 
 import boto3
 
+from django.conf import settings
 from caretaker.backend.abstract_backend import BackendFactory
 from caretaker.frontend.abstract_frontend import FrontendFactory
 from caretaker.tests.caretaker_main_test import AbstractCaretakerTest
@@ -21,6 +22,13 @@ class AbstractDjangoS3Test(AbstractCaretakerTest, metaclass=abc.ABCMeta):
 
     def __init__(self, logger: logging.Logger | None = None):
         super().__init__(logger=logger, method_name='test')
+
+        settings.CARETAKER_ADDITIONAL_BACKUP_PATHS = []
+        settings.MEDIA_ROOT = ''
+        settings.CARETAKER_BACKENDS = []
+        settings.CARETAKER_FRONTENDS = []
+        settings.CARETAKER_BACKEND = ''
+        settings.CARETAKER_FRONTEND = ''
 
         self.backend = BackendFactory.get_backend('Amazon S3')
         self.frontend = FrontendFactory.get_frontend('Django')

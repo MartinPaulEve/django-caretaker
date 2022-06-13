@@ -2,6 +2,7 @@ import zipfile
 from pathlib import Path
 
 import botocore.exceptions
+import click
 
 from caretaker.backend.abstract_backend import StoreOutcome
 from caretaker.tests.caretaker_main_test import AbstractCaretakerTest
