@@ -1,6 +1,8 @@
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
+import botocore.exceptions
 from moto import mock_s3
 
 from caretaker.utils import file
@@ -8,7 +10,7 @@ from caretaker.backend.abstract_backend import StoreOutcome
 from caretaker.tests.frontend.django.backend.s3.caretaker_test import \
     AbstractDjangoS3Test
 from caretaker.tests.utils import upload_temporary_file, \
-    file_in_zip
+    file_in_zip, boto3_error
 from caretaker.utils.zip import create_zip_file
 
 
@@ -77,10 +79,6 @@ class TestPullBackupDjangoS3(AbstractDjangoS3Test):
                 backup_local_file=zip_file, remote_key=self.data_key,
                 backend=self.backend, bucket_name=self.bucket_name)
 
-            # delete the zip file locally
-            zip_file.unlink(missing_ok=True)
-            self.assertFalse(zip_file.exists())
-
             # list the results to get a versionId
             result = self.frontend.list_backups(
                 remote_key=self.data_key, bucket_name=self.bucket_name,
@@ -101,3 +99,65 @@ class TestPullBackupDjangoS3(AbstractDjangoS3Test):
             self.assertTrue(file_in_zip(
                 zip_file=data_download_location, filename=self.json_key
             ))
+
+            # test the bytestream version
+            bytes_response = self.frontend.pull_backup_bytes(
+                backup_version=result[0]['version_id'],
+                remote_key=self.data_key,
+                bucket_name=self.bucket_name,
+                backend=self.backend)
+
+            bytes_read = bytes_response.read()
+            with Path(zip_path).open('rb') as bytes_zip:
+                zip_read = bytes_zip.read()
+                self.assertEqual(bytes_read, zip_read)
+
+            # patch for error handling
+            with patch(
+                    'botocore.client.BaseClient._make_api_call',
+                    side_effect=boto3_error('download_file')):
+
+                with self.assertRaises(Exception):
+                    # test the bytestream version
+                    bytes_response = self.frontend.pull_backup_bytes(
+                        backup_version=result[0]['version_id'],
+                        remote_key=self.data_key,
+                        bucket_name=self.bucket_name,
+                        backend=self.backend,
+                        raise_on_error=True
+                    )
+
+                bytes_response = self.frontend.pull_backup_bytes(
+                    backup_version=result[0]['version_id'],
+                    remote_key=self.data_key,
+                    bucket_name=self.bucket_name,
+                    backend=self.backend,
+                    raise_on_error=False
+                )
+
+                self.assertIsNone(bytes_response)
+
+                with self.assertRaises(botocore.exceptions.ClientError):
+                    self.frontend.pull_backup(
+                        backup_version=result[0]['version_id'],
+                        remote_key=self.data_key,
+                        bucket_name=self.bucket_name,
+                        backend=self.backend,
+                        out_file=data_download_location,
+                        raise_on_error=True
+                    )
+
+                file_resp = self.frontend.pull_backup(
+                    backup_version=result[0]['version_id'],
+                    remote_key=self.data_key,
+                    bucket_name=self.bucket_name,
+                    backend=self.backend,
+                    out_file=data_download_location,
+                    raise_on_error=False
+                )
+
+                self.assertIsNone(file_resp)
+
+            # delete the zip file locally
+            zip_file.unlink(missing_ok=True)
+            self.assertFalse(zip_file.exists())

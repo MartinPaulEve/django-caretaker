@@ -78,20 +78,23 @@ class AbstractBackend(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_object(self, bucket_name: str, remote_key: str,
-                   version_id: str) -> bytes | None:
+                   version_id: str,
+                   raise_on_error: bool = False) -> bytes | None:
         """
         Retrieve an object from the remote store as bytes
 
         :param bucket_name: the remote bucket name
         :param remote_key: the remote key (filename) of the object
         :param version_id: the version ID to fetch
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: the bytes of the retrieved object
         """
         pass
 
     @abc.abstractmethod
     def download_object(self, local_file: Path, bucket_name: str,
-                        remote_key: str, version_id: str) -> bool:
+                        remote_key: str, version_id: str,
+                        raise_on_error: bool = False) -> bool:
         """
         Retrieve an object from the remote store and save it to a file
 
@@ -99,6 +102,7 @@ class AbstractBackend(metaclass=abc.ABCMeta):
         :param bucket_name: the remote bucket name
         :param remote_key: the remote key (filename) of the object
         :param version_id: the version ID to fetch
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a true/false boolean of success
         """
         pass

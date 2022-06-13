@@ -143,13 +143,15 @@ class S3Backend(AbstractBackend):
         return StoreOutcome.STORED
 
     def get_object(self, bucket_name: str, remote_key: str,
-                   version_id: str) -> io.BytesIO | None:
+                   version_id: str,
+                   raise_on_error: bool = False) -> io.BytesIO | None:
         """
         Retrieve an object from the remote store as bytes
 
         :param bucket_name: the remote bucket name
         :param remote_key: the remote key (filename) of the object
         :param version_id: the version ID to fetch
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: the bytes of the retrieved object
         """
         try:
@@ -160,7 +162,7 @@ class S3Backend(AbstractBackend):
 
             response_object = io.BytesIO()
 
-            self.client.download_fileobj(Bucket=settings.CARETAKER_BACKUP_BUCKET,
+            self.client.download_fileobj(Bucket=bucket_name,
                                          Key=remote_key,
                                          Fileobj=response_object,
                                          ExtraArgs={'VersionId': version_id})
@@ -169,13 +171,18 @@ class S3Backend(AbstractBackend):
 
             return response_object
 
-        except botocore.exceptions.ClientError:
+        except botocore.exceptions.ClientError as ce:
             self.logger.error('Unable to download version {} of '
                               '{}'.format(version_id, remote_key))
+
+            if raise_on_error:
+                raise ce
+
             return None
 
     def download_object(self, local_file: Path, bucket_name: str,
-                        remote_key: str, version_id: str) -> bool:
+                        remote_key: str, version_id: str,
+                        raise_on_error: bool = False) -> bool:
         """
         Retrieve an object from the remote store and save it to a file
 
@@ -183,6 +190,7 @@ class S3Backend(AbstractBackend):
         :param bucket_name: the remote bucket name
         :param remote_key: the remote key (filename) of the object
         :param version_id: the version ID to fetch
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a true/false boolean of success
         """
 
@@ -202,8 +210,12 @@ class S3Backend(AbstractBackend):
             ))
 
             return True
-        except botocore.exceptions.ClientError:
+        except botocore.exceptions.ClientError as ce:
             self.logger.error('Unable to download version {} of '
                               '{} to {}'.format(version_id, remote_key,
                                                 out_file))
+
+            if raise_on_error:
+                raise ce
+
             return False

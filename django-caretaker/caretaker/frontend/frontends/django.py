@@ -1,3 +1,4 @@
+import io
 import logging
 import tempfile
 from io import StringIO
@@ -8,7 +9,7 @@ from django.conf import settings
 from django.core.management import call_command
 
 from caretaker.backend.abstract_backend import AbstractBackend, StoreOutcome
-from caretaker.frontend.abstract_frontend import AbstractFrontend
+from caretaker.frontend.abstract_frontend import AbstractFrontend, FrontendError
 from caretaker.utils import log, file
 from caretaker.utils.zip import create_zip_file
 
@@ -18,6 +19,27 @@ def get_frontend():
 
 
 class DjangoFrontend(AbstractFrontend):
+    @staticmethod
+    def pull_backup_bytes(backup_version: str, remote_key: str,
+                          backend: AbstractBackend,
+                          bucket_name: str,
+                          raise_on_error: bool = False) -> io.BytesIO | None:
+        """
+        Pull a backup object from the remote store into a BytesIO object
+
+        :param backup_version: the version ID of the backup to pull
+        :param remote_key: the remote key (filename)
+        :param backend: the backend to use
+        :param bucket_name: the name of the bucket/store
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
+        :return: a pathlib.Path object pointing to the downloaded file or None
+        """
+        return backend.get_object(
+            bucket_name=bucket_name,
+            remote_key=remote_key, version_id=backup_version,
+            raise_on_error=raise_on_error
+        )
+
     def __init__(self, logger: logging.Logger | None = None):
         super().__init__(logger)
 
@@ -139,7 +161,8 @@ class DjangoFrontend(AbstractFrontend):
 
     @staticmethod
     def pull_backup(backup_version: str, out_file: str, remote_key: str,
-                    backend: AbstractBackend, bucket_name: str) -> Path | None:
+                    backend: AbstractBackend, bucket_name: str,
+                    raise_on_error: bool = False) -> Path | None:
         """
         Pull a backup object from the remote store
 
@@ -148,6 +171,7 @@ class DjangoFrontend(AbstractFrontend):
         :param remote_key: the remote key (filename)
         :param backend: the backend to use
         :param bucket_name: the name of the bucket/store
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a pathlib.Path object pointing to the downloaded file or None
         """
         logger = log.get_logger('caretaker')
@@ -157,20 +181,25 @@ class DjangoFrontend(AbstractFrontend):
         download = backend.download_object(local_file=out_file,
                                            remote_key=remote_key,
                                            version_id=backup_version,
-                                           bucket_name=bucket_name)
+                                           bucket_name=bucket_name,
+                                           raise_on_error=raise_on_error
+                                           )
 
         try:
             if download:
 
                 return out_file
             else:
-                raise ClientError
-        except ClientError:
+                raise FrontendError
+        except (ClientError, FrontendError) as ce:
             logger.error('Unable to download version {} of {} to {}'.format(
                 backup_version,
                 remote_key,
                 out_file
             ))
+
+            if raise_on_error:
+                raise ce
 
             return None
 

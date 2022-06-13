@@ -82,19 +82,22 @@ class MockS3Backend(AbstractBackend):
         return StoreOutcome.STORED
 
     def get_object(self, bucket_name: str, remote_key: str,
-                   version_id: str) -> io.BytesIO | None:
+                   version_id: str,
+                   raise_on_error: bool = False) -> io.BytesIO | None:
         """
         Retrieve an object from the remote store as bytes
 
         :param bucket_name: the remote bucket name
         :param remote_key: the remote key (filename) of the object
         :param version_id: the version ID to fetch
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: the bytes of the retrieved object
         """
         return None
 
     def download_object(self, local_file: Path, bucket_name: str,
-                        remote_key: str, version_id: str) -> bool:
+                        remote_key: str, version_id: str,
+                        raise_on_error: bool = False) -> bool:
         """
         Retrieve an object from the remote store and save it to a file
 
@@ -102,6 +105,7 @@ class MockS3Backend(AbstractBackend):
         :param bucket_name: the remote bucket name
         :param remote_key: the remote key (filename) of the object
         :param version_id: the version ID to fetch
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a true/false boolean of success
         """
         return False

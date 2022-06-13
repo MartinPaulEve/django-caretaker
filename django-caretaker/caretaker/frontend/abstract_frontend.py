@@ -1,5 +1,6 @@
 import abc
 import importlib
+import io
 import logging
 import sys
 from pathlib import Path
@@ -75,7 +76,8 @@ class AbstractFrontend(metaclass=abc.ABCMeta):
     @staticmethod
     @abc.abstractmethod
     def pull_backup(backup_version: str, out_file: str, remote_key: str,
-                    backend: AbstractBackend, bucket_name: str) -> Path | None:
+                    backend: AbstractBackend, bucket_name: str,
+                    raise_on_error: bool = False) -> Path | None:
         """
         Pull a backup object from the remote store
 
@@ -84,6 +86,26 @@ class AbstractFrontend(metaclass=abc.ABCMeta):
         :param remote_key: the remote key (filename)
         :param backend: the backend to use
         :param bucket_name: the name of the bucket/store
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
+        :return: a pathlib.Path object pointing to the downloaded file or None
+        """
+
+        pass
+
+    @staticmethod
+    @abc.abstractmethod
+    def pull_backup_bytes(backup_version: str, remote_key: str,
+                          backend: AbstractBackend, bucket_name: str,
+                          raise_on_error: bool = False) \
+            -> io.BytesIO | None:
+        """
+        Pull a backup object from the remote store into a BytesIO object
+
+        :param backup_version: the version ID of the backup to pull
+        :param remote_key: the remote key (filename)
+        :param backend: the backend to use
+        :param bucket_name: the name of the bucket/store
+        :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a pathlib.Path object pointing to the downloaded file or None
         """
 
@@ -132,6 +154,10 @@ class AbstractFrontend(metaclass=abc.ABCMeta):
 
 
 class FrontendNotFoundError (Exception):
+    pass
+
+
+class FrontendError(Exception):
     pass
 
 
