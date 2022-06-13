@@ -9,13 +9,13 @@ import djclick as click
 
 
 @click.command()
-@click.argument('action', default='')
-def command(action: str) -> None:
+@click.option('--dry-run', '-d', is_flag=True, help="Run in dry mode.")
+def command(dry_run: bool) -> CronTab:
     """
     Installs crontab entries to run at 00:15 every day
     """
-    install_cron(job_name=settings.CARETAKER_BACKUP_BUCKET,
-                 action=action, base_dir=settings.BASE_DIR)
+    return install_cron(job_name=settings.CARETAKER_BACKUP_BUCKET,
+                        commit=not dry_run, base_dir=settings.BASE_DIR)
 
 
 def find_job(tab: CronTab, comment: str) -> CronItem | None:
@@ -32,21 +32,37 @@ def find_job(tab: CronTab, comment: str) -> CronItem | None:
     return None
 
 
-def install_cron(job_name: str, action: str, base_dir: str) \
+def install_cron(job_name: str, base_dir: str, commit: bool = True) \
         -> CronTab | None:
     """
     Installs a crontab entry to run the backup daily
 
     :param job_name: the name of the cron job
     :param base_dir: the working directory from which to operate
-    :param action: the action to take ("test", "quiet", or ""). "Test" will perform a dry run. Quiet will exit silently with changes unsaved. An empty string will save the crontab file.
+    :param commit: whether to write the crontab to disk or just print
+    :return:
+    """
+    tab = CronTab(user=True)
+
+    base_dir = file.normalize_path(base_dir)
+
+    return _install_cron(job_name=job_name, base_dir=str(base_dir),
+                         commit=commit, tab=tab)
+
+
+def _install_cron(job_name: str, base_dir: str, tab: CronTab,
+                  commit: bool = True) \
+        -> CronTab | None:
+    """
+    Installs a crontab entry to run the backup daily
+
+    :param job_name: the name of the cron job
+    :param base_dir: the working directory from which to operate
+    :param commit: whether to write the crontab to disk or just print
+    :param tab: the crontab to use
     :return:
     """
     logger = log.get_logger('caretaker-cron')
-    tab = CronTab(user=True)
-    virtualenv = os.environ.get('VIRTUAL_ENV', None)
-
-    base_dir = file.normalize_path(base_dir)
 
     jobs = [
         {
@@ -54,6 +70,8 @@ def install_cron(job_name: str, action: str, base_dir: str) \
             'task': 'run_backup',
         },
     ]
+
+    virtualenv = os.environ.get('VIRTUAL_ENV', None)
 
     for job in jobs:
         current_job = find_job(tab, job['name'])
@@ -70,9 +88,7 @@ def install_cron(job_name: str, action: str, base_dir: str) \
             logger.info("{name} cron job already exists.".format(
                 name=job['name']))
 
-    if action == 'test':
-        logger.info(tab.render())
-    else:
+    if commit:
         tab.write()
 
     return tab

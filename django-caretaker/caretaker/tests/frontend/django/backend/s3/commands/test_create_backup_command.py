@@ -14,18 +14,18 @@ from caretaker.tests.utils import upload_temporary_file
 @mock_s3
 class TestCreateBackupDjangoS3Command(AbstractDjangoS3Test):
     def setUp(self):
-        self.logger.info('Setup for create_backup')
+        self.logger.info('Setup for create_backup command')
 
         self.create_bucket()
 
         django.setup()
 
     def tearDown(self):
-        self.logger.info('Teardown for create_backup')
+        self.logger.info('Teardown for create_backup command')
         pass
 
     def test(self):
-        self.logger.info('Testing create_backup')
+        self.logger.info('Testing create_backup command')
 
         with tempfile.TemporaryDirectory() as temporary_directory_name:
             # set up a temporary file

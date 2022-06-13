@@ -12,16 +12,16 @@ from moto import mock_s3
 @mock_s3
 class TestTerraformOutputDjangoS3Command(AbstractDjangoS3Test):
     def setUp(self):
-        self.logger.info('Setup for Terraform test')
+        self.logger.info('Setup for Terraform command test')
 
         self.create_bucket()
 
     def tearDown(self):
-        self.logger.info('Teardown Terraform test')
+        self.logger.info('Teardown Terraform command test')
         pass
 
     def test(self):
-        self.logger.info('Running Terraform test')
+        self.logger.info('Running Terraform command test')
         with tempfile.TemporaryDirectory() as temporary_directory_name:
 
             get_terraform.command.callback(
