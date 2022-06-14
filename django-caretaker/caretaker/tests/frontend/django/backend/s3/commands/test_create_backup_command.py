@@ -48,8 +48,11 @@ class TestCreateBackupDjangoS3Command(AbstractDjangoS3Test):
             self.assertTrue(json_file.exists())
             self.assertTrue(data_file.exists())
 
-            create_backup.command.callback(
-                output_directory=temporary_directory_name,
-                additional_files=[temporary_directory_name],
-                frontend_name='NOT FOUND'
-            )
+            with self.assertLogs(level='ERROR') as log:
+                create_backup.command.callback(
+                    output_directory=temporary_directory_name,
+                    additional_files=[temporary_directory_name],
+                    frontend_name='NOT FOUND'
+                )
+                self.assertIn('Unable to find a valid frontend',
+                              ''.join(log.output))

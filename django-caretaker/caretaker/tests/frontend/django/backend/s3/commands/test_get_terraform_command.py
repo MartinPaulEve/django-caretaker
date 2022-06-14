@@ -35,14 +35,20 @@ class TestTerraformOutputDjangoS3Command(AbstractDjangoS3Test):
             self.assertTrue(
                 (Path(temporary_directory_name) / 'output.tf').exists())
 
-            get_terraform.command.callback(
-                output_directory=temporary_directory_name,
-                backend_name='NON',
-                frontend_name=self.frontend.frontend_name
-                )
+            with self.assertLogs(level='ERROR') as log:
+                get_terraform.command.callback(
+                    output_directory=temporary_directory_name,
+                    backend_name='NON',
+                    frontend_name=self.frontend.frontend_name
+                    )
+                self.assertIn('Unable to find a valid backend',
+                              ''.join(log.output))
 
-            get_terraform.command.callback(
-                output_directory=temporary_directory_name,
-                backend_name=self.backend.backend_name,
-                frontend_name='NON'
-            )
+            with self.assertLogs(level='ERROR') as log:
+                get_terraform.command.callback(
+                    output_directory=temporary_directory_name,
+                    backend_name=self.backend.backend_name,
+                    frontend_name='NON'
+                )
+                self.assertIn('Unable to find a valid frontend',
+                              ''.join(log.output))
