@@ -2,7 +2,6 @@ import zipfile
 from pathlib import Path
 
 import botocore.exceptions
-import click
 
 from caretaker.backend.abstract_backend import StoreOutcome
 from caretaker.tests.caretaker_main_test import AbstractCaretakerTest
@@ -12,7 +11,8 @@ from caretaker.utils import file
 def upload_temporary_file(test_class: AbstractCaretakerTest,
                           temporary_directory_name: str,
                           contents: str,
-                          check_identical: bool = True) \
+                          check_identical: bool = True,
+                          remote_key: str = '') \
         -> (StoreOutcome, Path):
     """
     Create a temporary file and upload it to the mocked backend
@@ -21,18 +21,21 @@ def upload_temporary_file(test_class: AbstractCaretakerTest,
     :param temporary_directory_name: the output directory to use
     :param contents: the contents to write to the file
     :param check_identical: check whether the file exists in the remote store
+    :param remote_key: the remote key (filename) to store
     :return: a 2-tuple of StoreOutcome and pathlib.Path to the file
     """
 
+    remote_key = remote_key if remote_key else test_class.json_key
+
     temporary_file = file.normalize_path(
-        temporary_directory_name) / test_class.json_key
+        temporary_directory_name) / remote_key
 
     with temporary_file.open('w') as out_file:
         out_file.write(contents)
 
     # run the first time to store the result
     result = test_class.frontend.push_backup(
-        backup_local_file=temporary_file, remote_key=test_class.json_key,
+        backup_local_file=temporary_file, remote_key=remote_key,
         backend=test_class.backend, bucket_name=test_class.bucket_name,
         check_identical=check_identical)
 

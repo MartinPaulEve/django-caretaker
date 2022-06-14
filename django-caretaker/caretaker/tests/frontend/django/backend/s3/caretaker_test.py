@@ -29,6 +29,9 @@ class AbstractDjangoS3Test(AbstractCaretakerTest, metaclass=abc.ABCMeta):
         settings.CARETAKER_FRONTENDS = []
         settings.CARETAKER_BACKEND = ''
         settings.CARETAKER_FRONTEND = ''
+        settings.CARETAKER_BACKUP_BUCKET = 'caretaker_bucket'
+
+        self.bucket_name = settings.CARETAKER_BACKUP_BUCKET
 
         self.backend = BackendFactory.get_backend('Amazon S3')
         self.frontend = FrontendFactory.get_frontend('Django')
@@ -53,7 +56,6 @@ class AbstractDjangoS3Test(AbstractCaretakerTest, metaclass=abc.ABCMeta):
             aws_secret_access_key='fake_secret_key',
         )
 
-        self.bucket_name = 'a_test_bucket'
         self.backend.s3.create_bucket(Bucket=self.bucket_name)
 
         self.backend.s3.put_bucket_versioning(

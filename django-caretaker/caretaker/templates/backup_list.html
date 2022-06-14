@@ -48,10 +48,10 @@
                         <tbody>
                             {% for sql_entry in sql_versions %}
                                 <tr>
-                                    <td>{{ sql_entry.lastmodified }}</td>
-                                    <td>{{ sql_entry.versionid }}</td>
+                                    <td>{{ sql_entry.last_modified }}</td>
+                                    <td>{{ sql_entry.version_id }}</td>
                                     <td>{{ sql_entry.size }}</td>
-                                    <td><a href="{% url 'download_backup' 'sql' sql_entry.versionid %}">Download</a></td>
+                                    <td><a href="{% url 'download_backup' 'sql' sql_entry.version_id %}">Download</a></td>
                                 </tr>
                             {% endfor %}
                         </tbody>

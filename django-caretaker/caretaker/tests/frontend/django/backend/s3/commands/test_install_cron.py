@@ -32,7 +32,7 @@ class TestInstallCronCommand(AbstractDjangoS3Test):
 
         self.assertIsNotNone(tab)
         self.assertTrue(
-            'caretaker_sync_caretakertestbackup_job' in tab.render())
+            'caretaker_sync_{}_job'.format(self.bucket_name) in tab.render())
 
         # run it again to simulate finding the existing job
         tab = install_cron._install_cron(
@@ -42,14 +42,15 @@ class TestInstallCronCommand(AbstractDjangoS3Test):
 
         self.assertIsNotNone(tab)
         self.assertTrue(
-            'caretaker_sync_caretakertestbackup_job' in tab.render())
+            'caretaker_sync_{}_job'.format(self.bucket_name) in tab.render())
 
         # now check that when we run the save method, it does so
         tab = install_cron.command.callback(dry_run=False, )
         cron_mock.assert_called()
 
         job = install_cron.find_job(tab,
-                                    'caretaker_sync_caretakertestbackup_job')
+                                    'caretaker_sync_{}_job'.format(
+                                        self.bucket_name))
 
         self.assertIsNotNone(job)
 
