@@ -37,13 +37,13 @@ jobs:
         run: python3 -m pytest
         env:
           SYSTEM_ENV: GITHUB_WORKFLOW
-      - name: Run tests
+      - name: Create coverage file
         working-directory: ./django-caretaker
         run: python3 -m coverage xml
       - name: Code Coverage Summary Report
         uses: irongut/CodeCoverageSummary@v1.2.0
         with:
-          filename: coverage.xml
+          filename: ./django-caretaker/coverage.xml
           badge: true
           fail_below_min: true
           format: markdown
