@@ -11,18 +11,18 @@ from caretaker.tests.utils import upload_temporary_file
 
 
 @mock_s3
-class TestListBackupDjangoS3Command(AbstractDjangoS3Test):
+class TestPullBackupDjangoS3Command(AbstractDjangoS3Test):
     def setUp(self):
-        self.logger.info('Setup for Terraform command test')
+        self.logger.info('Setup for pull command test')
 
         self.create_bucket()
 
     def tearDown(self):
-        self.logger.info('Teardown Terraform command test')
+        self.logger.info('Teardown pull command test')
         pass
 
     def test(self):
-        self.logger.info('Running Terraform command test')
+        self.logger.info('Running pull command test')
         with tempfile.TemporaryDirectory() as temporary_directory_name:
 
             self.logger.info('Uploading temporary file')
