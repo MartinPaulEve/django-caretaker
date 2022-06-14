@@ -61,16 +61,16 @@ jobs:
           recreate: true
           path: code-coverage-results.md
       - name: Commit code coverage file
-                - uses: EndBug/add-and-commit@v9 # You can change this to use a specific version.
-                with:
-                  add: 'code-coverage-results.md'
-                  author_name: Code Coverage Bot
-                  author_email: martin@eve.gd
-                  committer_name: Code Coverage Bot
-                  committer_email: martin@eve.gd
-                  cwd: './django-caretaker'
-                  default_author: github_actor
-                  message: 'Updating code coverage stats'
-                  pathspec_error_handling: ignore
-                  pull: '--rebase --autostash ...'
-                  push: true
+        uses: EndBug/add-and-commit@v9 # You can change this to use a specific version.
+        with:
+          add: 'code-coverage-results.md'
+          author_name: Code Coverage Bot
+          author_email: martin@eve.gd
+          committer_name: Code Coverage Bot
+          committer_email: martin@eve.gd
+          cwd: './django-caretaker'
+          default_author: github_actor
+          message: 'Updating code coverage stats'
+          pathspec_error_handling: ignore
+          pull: '--rebase --autostash ...'
+          push: true
