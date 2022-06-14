@@ -40,7 +40,7 @@ class TestRunBackupDjangoS3Command(AbstractDjangoS3Test):
             settings.MEDIA_ROOT = ''
             settings.CARETAKER_ADDITIONAL_BACKUP_PATHS = []
 
-            # run the backup
+            # run the backup with no dir set
             run_backup.command.callback(
                 output_directory='',
                 additional_files=(temporary_directory_name,),
@@ -56,6 +56,13 @@ class TestRunBackupDjangoS3Command(AbstractDjangoS3Test):
 
             version = result[0]['version_id']
             self.assertIsNotNone(version)
+
+            run_backup.command.callback(
+                output_directory=temporary_directory_name,
+                additional_files=(temporary_directory_name,),
+                backend_name=self.backend.backend_name,
+                frontend_name=self.frontend.frontend_name
+            )
 
             # now test for loaders failing
             with self.assertLogs(level='ERROR') as log:

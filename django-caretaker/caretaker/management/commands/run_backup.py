@@ -35,9 +35,12 @@ def command(output_directory: str, additional_files: tuple, backend_name: str,
         frontend.run_backup(output_directory=output_directory,
                             backend=backend,
                             bucket_name=settings.CARETAKER_BACKUP_BUCKET,
-                            path_list=list(additional_files))
+                            path_list=list(additional_files),
+                            raise_on_error=True)
 
     except BackendNotFoundError:
         logger.error('Unable to find a valid backend')
     except FrontendNotFoundError:
         logger.error('Unable to find a valid frontend')
+    except FileNotFoundError:
+        logger.error('Unable to use {}'.format(output_directory))
