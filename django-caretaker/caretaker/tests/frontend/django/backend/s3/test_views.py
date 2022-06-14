@@ -1,17 +1,14 @@
-import re
 import tempfile
 
+from django.contrib.auth.models import User
+from django.test import RequestFactory
 from moto import mock_s3
 
+from caretaker import views
 from caretaker.backend.abstract_backend import StoreOutcome
 from caretaker.tests.frontend.django.backend.s3.caretaker_test import \
     AbstractDjangoS3Test
 from caretaker.tests.utils import upload_temporary_file
-
-from caretaker import views
-
-from django.contrib.auth.models import AnonymousUser, User
-from django.test import RequestFactory, TestCase
 
 
 @mock_s3
@@ -44,6 +41,8 @@ class TestDjangoS3Views(AbstractDjangoS3Test):
             )
 
             self.assertTrue(result == StoreOutcome.STORED)
+            self.logger.info('Wrote {} as {}'.format(temporary_file,
+                                                     self.data_key))
 
             # now grab the ID
             result = self.frontend.list_backups(
@@ -79,6 +78,10 @@ class TestDjangoS3Views(AbstractDjangoS3Test):
                 contents=self.test_contents, check_identical=False,
                 remote_key=self.data_key
             )
+
+            self.assertTrue(result == StoreOutcome.STORED)
+            self.logger.info('Wrote {} as {}'.format(temporary_file,
+                                                     self.data_key))
 
             # now grab the ID
             result = self.frontend.list_backups(
