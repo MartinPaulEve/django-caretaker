@@ -44,30 +44,19 @@ class TestRunBackupDjangoS3(AbstractDjangoS3Test):
             settings.MEDIA_ROOT = ''
             settings.CARETAKER_ADDITIONAL_BACKUP_PATHS = []
 
-            # check we throw an error if no path given
-            with self.assertRaises(FileNotFoundError):
-                self.frontend.run_backup(
-                    output_directory='',
-                    path_list=[temporary_directory_name],
-                    bucket_name=self.bucket_name,
-                    backend=self.backend, raise_on_error=True
-                )
-
             result, output = self.frontend.run_backup(
-                output_directory='',
                 path_list=[temporary_directory_name],
                 bucket_name=self.bucket_name,
                 backend=self.backend, raise_on_error=False
                 )
 
-            self.assertIsNone(result)
-            self.assertIsNone(output)
+            self.assertIsNotNone(result)
+            self.assertIsNotNone(output)
 
             # create a backup record including this directory
             self.logger.info('Creating backup in {}'.format(
                 temporary_directory_name))
             self.frontend.run_backup(
-                output_directory=temporary_directory_name,
                 path_list=[temporary_directory_name],
                 bucket_name=self.bucket_name,
                 backend=self.backend

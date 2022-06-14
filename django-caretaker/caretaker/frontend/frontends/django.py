@@ -260,7 +260,7 @@ class DjangoFrontend(AbstractFrontend):
             return result
 
     @staticmethod
-    def run_backup(output_directory: str, data_file: str = 'data.json',
+    def run_backup(data_file: str = 'data.json',
                    archive_file: str = 'media.zip',
                    path_list: list | None = None,
                    backend: AbstractBackend | None = None,
@@ -270,7 +270,6 @@ class DjangoFrontend(AbstractFrontend):
         """
         Creates a backup set and pushes it to the remote store
 
-        :param output_directory: the output directory for the local backup set
         :param data_file: the output data file (e.g. data.json)
         :param archive_file: the output archive file (e.g. media.zip)
         :param path_list: the list of paths to bundle in the zip
@@ -282,14 +281,6 @@ class DjangoFrontend(AbstractFrontend):
         logger = log.get_logger('caretaker-django')
 
         path_list = path_list if path_list else []
-
-        if not output_directory:
-            logger.error('No output directory specified')
-
-            if raise_on_error:
-                raise FileNotFoundError
-
-            return None, None
 
         # set up a temporary directory
         with tempfile.TemporaryDirectory() as temporary_directory_name:

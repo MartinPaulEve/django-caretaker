@@ -135,7 +135,7 @@ class AbstractFrontend(metaclass=abc.ABCMeta):
 
     @staticmethod
     @abc.abstractmethod
-    def run_backup(output_directory: str, data_file: str = 'data.json',
+    def run_backup(data_file: str = 'data.json',
                    archive_file: str = 'media.zip',
                    path_list: list | None = None,
                    backend: AbstractBackend | None = None,
@@ -145,7 +145,6 @@ class AbstractFrontend(metaclass=abc.ABCMeta):
         """
         Creates a backup set and pushes it to the remote store
 
-        :param output_directory: the output directory for the local backup set
         :param data_file: the output data file (e.g. data.json)
         :param archive_file: the output archive file (e.g. media.zip)
         :param path_list: the list of paths to bundle in the zip

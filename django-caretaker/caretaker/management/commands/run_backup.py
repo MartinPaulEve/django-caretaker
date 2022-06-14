@@ -8,7 +8,6 @@ from caretaker.utils import log
 
 
 @click.command()
-@click.argument('output-directory')
 @click.option('--additional-files', '-a', multiple=True,
               help='Additional directories to add to the zip file',
               type=str)
@@ -18,7 +17,7 @@ from caretaker.utils import log
 @click.option('--frontend-name', '-f',
               help='The name of the frontend to use',
               type=str)
-def command(output_directory: str, additional_files: tuple, backend_name: str,
+def command(additional_files: tuple, backend_name: str,
             frontend_name: str) -> None:
     """
     Pushes LOCAL-FILE to the latest version of REMOTE-KEY
@@ -32,8 +31,7 @@ def command(output_directory: str, additional_files: tuple, backend_name: str,
             raise_on_none=True
         )
 
-        frontend.run_backup(output_directory=output_directory,
-                            backend=backend,
+        frontend.run_backup(backend=backend,
                             bucket_name=settings.CARETAKER_BACKUP_BUCKET,
                             path_list=list(additional_files),
                             raise_on_error=True)
@@ -42,5 +40,3 @@ def command(output_directory: str, additional_files: tuple, backend_name: str,
         logger.error('Unable to find a valid backend')
     except FrontendNotFoundError:
         logger.error('Unable to find a valid frontend')
-    except FileNotFoundError:
-        logger.error('Unable to use {}'.format(output_directory))
