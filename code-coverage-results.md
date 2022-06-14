@@ -18,6 +18,6 @@ tests.frontend.django.backend | 100% | 100% | ✔
 tests.frontend.django.backend.s3 | 100% | 100% | ✔
 tests.frontend.django.backend.s3.commands | 100% | 100% | ✔
 utils | 100% | 100% | ✔
-**Summary** | **100%** (1358 / 1358) | **100%** (291 / 291) | ✔
+**Summary** | **100%** (1361 / 1361) | **100%** (293 / 293) | ✔
 
 _Minimum allowed line rate is `60%`_
