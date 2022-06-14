@@ -72,5 +72,4 @@ jobs:
           default_author: github_actor
           message: 'Updating code coverage stats'
           pathspec_error_handling: ignore
-          pull: '--rebase --autostash ...'
           push: true
