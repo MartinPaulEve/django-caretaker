@@ -12,7 +12,8 @@ def upload_temporary_file(test_class: AbstractCaretakerTest,
                           temporary_directory_name: str,
                           contents: str,
                           check_identical: bool = True,
-                          remote_key: str = '') \
+                          remote_key: str = '',
+                          commit: bool = True) \
         -> (StoreOutcome, Path):
     """
     Create a temporary file and upload it to the mocked backend
@@ -22,6 +23,7 @@ def upload_temporary_file(test_class: AbstractCaretakerTest,
     :param contents: the contents to write to the file
     :param check_identical: check whether the file exists in the remote store
     :param remote_key: the remote key (filename) to store
+    :param commit: whether to push the file to the remote store
     :return: a 2-tuple of StoreOutcome and pathlib.Path to the file
     """
 
@@ -34,10 +36,13 @@ def upload_temporary_file(test_class: AbstractCaretakerTest,
         out_file.write(contents)
 
     # run the first time to store the result
-    result = test_class.frontend.push_backup(
-        backup_local_file=temporary_file, remote_key=remote_key,
-        backend=test_class.backend, bucket_name=test_class.bucket_name,
-        check_identical=check_identical)
+    if commit:
+        result = test_class.frontend.push_backup(
+            backup_local_file=temporary_file, remote_key=remote_key,
+            backend=test_class.backend, bucket_name=test_class.bucket_name,
+            check_identical=check_identical)
+    else:
+        result = StoreOutcome.FAILED
 
     return result, temporary_file
 

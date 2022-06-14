@@ -39,3 +39,5 @@ def command(remote_key: str, local_file: str, backend_name: str,
         logger.error('Unable to find a valid backend')
     except FrontendNotFoundError:
         logger.error('Unable to find a valid frontend')
+    except FileNotFoundError:
+        logger.error('Unable to read from {}'.format(local_file))
