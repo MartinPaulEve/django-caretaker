@@ -1,16 +1,23 @@
 import io
 import logging
+import subprocess
 import tempfile
 from io import StringIO
 from pathlib import Path
-from time import sleep
 
 from botocore.exceptions import ClientError
 from django.conf import settings
 from django.core.management import call_command
+from django.core.management.base import CommandError
+from django.db import DEFAULT_DB_ALIAS, connections
+from django.db.backends.base.base import BaseDatabaseWrapper
 
+import caretaker.frontend.frontends.utils as frontend_utils
 from caretaker.backend.abstract_backend import AbstractBackend, StoreOutcome
 from caretaker.frontend.abstract_frontend import AbstractFrontend, FrontendError
+from caretaker.frontend.frontends.database_exporters. \
+    abstract_database_exporter import DatabaseExporterNotFoundError, \
+    AbstractDatabaseExporter
 from caretaker.utils import log, file
 from caretaker.utils.zip import create_zip_file
 
@@ -20,6 +27,59 @@ def get_frontend():
 
 
 class DjangoFrontend(AbstractFrontend):
+    @staticmethod
+    def export_sql(database: str = '', alternative_binary: str = '',
+                   alternative_args: list | None = None) -> str:
+        """
+        Export SQL from the database using the specific provider
+
+        :param database: the database to export
+        :param alternative_binary: a different binary file to run
+        :param alternative_args: a different set of cmdline args to pass
+        :return: a string of the database output
+        """
+
+        database: str = database if database else DEFAULT_DB_ALIAS
+        connection: BaseDatabaseWrapper | AbstractDatabaseExporter \
+            = connections[database]
+
+        # load the database patch plugins
+        patched, exporter = frontend_utils.DatabasePatcher.patch(connection)
+
+        if patched:
+            try:
+                # it looks paradoxical that we are passing in the connection
+                # here but because of the way the patching works, it needs
+                # itself as a parameter
+                return connection.export_sql(
+                    connection=connection,
+                    alternative_binary=alternative_binary,
+                    alternative_args=alternative_args
+                )
+            except FileNotFoundError:
+                # Note that we're assuming the FileNotFoundError relates to the
+                # command missing. It could be raised for some other reason, in
+                # which case this error message would be inaccurate. Still, this
+                # message catches the common case.
+                binary_name = exporter.binary_name \
+                    if not alternative_binary else alternative_binary
+                raise CommandError(
+                    "You appear not to have the %r program installed or on "
+                    "your path."
+                    % binary_name
+                )
+            except subprocess.CalledProcessError as e:
+                raise CommandError(
+                    '"%s" returned non-zero exit status %s.'
+                    % (
+                        " ".join(e.cmd),
+                        e.returncode,
+                    ),
+                    returncode=e.returncode,
+                )
+        else:
+            raise DatabaseExporterNotFoundError
+
     @staticmethod
     def pull_backup_bytes(backup_version: str, remote_key: str,
                           backend: AbstractBackend,

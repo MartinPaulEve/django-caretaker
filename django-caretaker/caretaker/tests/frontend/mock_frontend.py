@@ -13,6 +13,18 @@ def get_frontend():
 
 class MockFrontend(AbstractFrontend):
     @staticmethod
+    def export_sql(database: str = '', alternative_binary: str = '',
+                   alternative_args: list | None = None) -> str:
+        """
+        Export SQL from the database using the specific provider
+
+        :param database: the database to export
+        :param alternative_binary: a different binary file to run
+        :param alternative_args: a different set of cmdline args to pass
+        :return: a string of the database output
+        """
+
+    @staticmethod
     def pull_backup_bytes(backup_version: str, remote_key: str,
                           backend: AbstractBackend,
                           bucket_name: str,
