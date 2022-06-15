@@ -1,23 +1,26 @@
 import io
 import logging
+import subprocess
 import tempfile
 from io import StringIO
 from pathlib import Path
-import subprocess
-
-from django.db import DEFAULT_DB_ALIAS, connections
 
 from botocore.exceptions import ClientError
 from django.conf import settings
 from django.core.management import call_command
+from django.core.management.base import CommandError
+from django.db import DEFAULT_DB_ALIAS, connections
+from django.db.backends.base.base import BaseDatabaseWrapper
 
+import caretaker.frontend.frontends.utils as frontend_utils
 from caretaker.backend.abstract_backend import AbstractBackend, StoreOutcome
 from caretaker.frontend.abstract_frontend import AbstractFrontend, FrontendError
+from caretaker.frontend.frontends.database_exporters. \
+    abstract_database_exporter import DatabaseExporterNotFoundError, \
+    AbstractDatabaseExporter
 from caretaker.utils import log, file
 from caretaker.utils.zip import create_zip_file
 
-from django.core.management.base import BaseCommand, CommandError
-import caretaker.frontend.frontends.utils as frontend_utils
 
 def get_frontend():
     return DjangoFrontend()
@@ -27,35 +30,38 @@ class DjangoFrontend(AbstractFrontend):
     @staticmethod
     def export_sql(database: str = '') -> str:
 
-        database = database if database else DEFAULT_DB_ALIAS
-        connection = connections[database]
+        database: str = database if database else DEFAULT_DB_ALIAS
+        connection: BaseDatabaseWrapper | AbstractDatabaseExporter \
+            = connections[database]
 
         # load the database patch plugins
-        frontend_utils.PluginLoader.patch(connection)
-
-        print(connection.__dict__)
-
-        try:
-            pass
-        except FileNotFoundError:
-            # Note that we're assuming the FileNotFoundError relates to the
-            # command missing. It could be raised for some other reason, in
-            # which case this error message would be inaccurate. Still, this
-            # message catches the common case.
-            raise CommandError(
-                "You appear not to have the %r program installed or on "
-                "your path."
-                % connection.client.executable_name
-            )
-        except subprocess.CalledProcessError as e:
-            raise CommandError(
-                '"%s" returned non-zero exit status %s.'
-                % (
-                    " ".join(e.cmd),
-                    e.returncode,
-                ),
-                returncode=e.returncode,
-            )
+        if frontend_utils.DatabasePatcher.patch(connection):
+            try:
+                # it looks paradoxical that we are passing in the connection
+                # here but because of the way the patching works, it needs
+                # itself as a parameter
+                return connection.export_sql(connection)
+            except FileNotFoundError:
+                # Note that we're assuming the FileNotFoundError relates to the
+                # command missing. It could be raised for some other reason, in
+                # which case this error message would be inaccurate. Still, this
+                # message catches the common case.
+                raise CommandError(
+                    "You appear not to have the %r program installed or on "
+                    "your path."
+                    % connection.client.executable_name
+                )
+            except subprocess.CalledProcessError as e:
+                raise CommandError(
+                    '"%s" returned non-zero exit status %s.'
+                    % (
+                        " ".join(e.cmd),
+                        e.returncode,
+                    ),
+                    returncode=e.returncode,
+                )
+        else:
+            raise DatabaseExporterNotFoundError
 
     @staticmethod
     def pull_backup_bytes(backup_version: str, remote_key: str,
