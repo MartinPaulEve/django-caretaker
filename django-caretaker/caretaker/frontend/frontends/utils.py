@@ -24,5 +24,5 @@ class DatabasePatcher:
         return False, None
 
     @staticmethod
-    def can_handle(database: dict, patcher) -> bool:
-        return patcher.handles in database['settings_dict']['ENGINE']
+    def can_handle(database: BaseDatabaseWrapper, patcher) -> bool:
+        return patcher.handles in database.settings_dict['ENGINE']

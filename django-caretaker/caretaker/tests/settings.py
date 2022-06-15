@@ -94,14 +94,14 @@ elif SYSTEM_ENV == 'GITHUB_WORKFLOW':
             'PORT': '5432',
         }
     }
-elif SYSTEM_ENV == 'DEVELOPMENT':
+else:
     DEBUG = True
 
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
-        }
+        },
     }
 
 

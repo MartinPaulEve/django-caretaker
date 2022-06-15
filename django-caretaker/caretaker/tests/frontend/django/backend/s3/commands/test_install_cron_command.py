@@ -4,8 +4,6 @@ import django
 from django.conf import settings
 from moto import mock_s3
 
-from crontab import CronTab
-
 from caretaker.management.commands import install_cron
 from caretaker.tests.frontend.django.backend.s3.caretaker_test import \
     AbstractDjangoS3Test
@@ -14,14 +12,14 @@ from caretaker.tests.frontend.django.backend.s3.caretaker_test import \
 @mock_s3
 class TestInstallCronCommand(AbstractDjangoS3Test):
     def setUp(self):
-        self.logger.info('Setup for create_backup')
+        self.logger.info('Setup for install cron command')
 
         self.create_bucket()
 
         django.setup()
 
     def tearDown(self):
-        self.logger.info('Teardown for create_backup')
+        self.logger.info('Teardown for install cron command')
         pass
 
     @patch('crontab.CronTab.write')

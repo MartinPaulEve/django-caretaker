@@ -25,6 +25,16 @@ class AbstractDatabaseExporter(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
+    def binary_file(self) -> str:
+        """
+        The binary file to execute
+
+        :return: a path to a binary executable
+        """
+        pass
+
+    @property
+    @abc.abstractmethod
     def handles(self) -> str:
         """
         The database engine that this class handles
@@ -33,12 +43,16 @@ class AbstractDatabaseExporter(metaclass=abc.ABCMeta):
         """
         pass
 
-    @staticmethod
     @abc.abstractmethod
-    def export_sql(connection: BaseDatabaseWrapper) -> str:
+    def export_sql(self, connection: BaseDatabaseWrapper,
+                   alternative_binary: str = '',
+                   alternative_args: list | None = None) -> str:
         """
         Export SQL from the database using the specific provider
 
+        :param connection: the connection object
+        :param alternative_binary: the alternative binary to use
+        :param alternative_args: a different set of cmdline args to pass
         :return: a string of the database to output
         """
         pass
