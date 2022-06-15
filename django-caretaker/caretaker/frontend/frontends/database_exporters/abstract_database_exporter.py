@@ -1,5 +1,7 @@
 import abc
 import logging
+from typing import TextIO
+from typing.io import BinaryIO
 
 from django.db.backends.base.base import BaseDatabaseWrapper
 
@@ -46,7 +48,7 @@ class AbstractDatabaseExporter(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def export_sql(self, connection: BaseDatabaseWrapper,
                    alternative_binary: str = '',
-                   alternative_args: list | None = None) -> str:
+                   alternative_args: list | None = None) -> TextIO | BinaryIO:
         """
         Export SQL from the database using the specific provider
 

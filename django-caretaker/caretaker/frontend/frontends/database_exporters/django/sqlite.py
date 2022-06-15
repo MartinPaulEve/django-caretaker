@@ -1,14 +1,18 @@
 import logging
+import logging
 import os
 import subprocess
+import sys
+from typing import TextIO
+from typing.io import BinaryIO
 
 from django.db.backends.base.base import BaseDatabaseWrapper
 
-from caretaker.utils import log
-from caretaker.frontend.frontends.utils import DatabasePatcher
-
-from caretaker.frontend.frontends.database_exporters.\
+from caretaker.frontend.frontends.database_exporters. \
     abstract_database_exporter import AbstractDatabaseExporter
+from caretaker.frontend.frontends.utils import DatabasePatcher, \
+    BufferedProcessReader
+from caretaker.utils import log
 
 
 class SQLiteDatabaseExporter(AbstractDatabaseExporter):
@@ -61,7 +65,7 @@ class SQLiteDatabaseExporter(AbstractDatabaseExporter):
 
     def export_sql(self, connection: BaseDatabaseWrapper,
                    alternative_binary: str = '',
-                   alternative_args: list | None = None) -> str:
+                   alternative_args: list | None = None) -> TextIO | BinaryIO:
         """
         Export SQL from the database using the specific provider
 
@@ -78,21 +82,20 @@ class SQLiteDatabaseExporter(AbstractDatabaseExporter):
         env = None
         env = {**os.environ, **env} if env else None
 
-        process = subprocess.Popen(args, env=env, stdout=subprocess.PIPE)
+        process: subprocess.Popen = subprocess.Popen(args,
+                                                     env=env,
+                                                     stdout=subprocess.PIPE,
+                                                     bufsize=8192, shell=False)
 
-        outputs = process.communicate()
-        final_output = []
-
-        for output_line in outputs:
-            if output_line:
-                final_output.append(output_line.decode('utf-8'))
+        reader = BufferedProcessReader(process)
+        reader.handle_process()
 
         if process.returncode != 0:
             raise subprocess.CalledProcessError(returncode=process.returncode,
                                                 cmd=''.join(args),
-                                                output='\n'.join(final_output))
+                                                output='Output not available')
 
-        return '\n'.join(final_output)
+        return sys.stdout
 
     def patch(self, connection: BaseDatabaseWrapper) -> bool:
         """

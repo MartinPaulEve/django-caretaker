@@ -5,13 +5,14 @@ from django.db.backends.base.base import BaseDatabaseWrapper
 from django.utils.connection import ConnectionDoesNotExist
 from moto import mock_s3
 
-from caretaker.tests.frontend.django.backend.s3.caretaker_test import \
-    AbstractDjangoS3Test
 from caretaker.frontend.frontends.database_exporters. \
     abstract_database_exporter import AbstractDatabaseExporter, \
     DatabaseExporterNotFoundError
-from caretaker.frontend.frontends.database_exporters.\
+from caretaker.frontend.frontends.database_exporters. \
     django.sqlite import SQLiteDatabaseExporter
+from caretaker.tests.frontend.django.backend.s3.caretaker_test import \
+    AbstractDjangoS3Test
+from caretaker.tests.utils import captured_output
 
 
 @mock_s3
@@ -30,7 +31,9 @@ class TestSQLiteDatabaseExporter(AbstractDjangoS3Test):
     def test(self):
         self.logger.info('Testing SQLiteDatabaseExporter')
 
-        self.assertIn('COMMIT', self.frontend.export_sql())
+        with captured_output() as (stdout, stderr):
+            self.frontend.export_sql()
+            self.assertIn('COMMIT', stdout.getvalue())
 
         # check when we get no database
         with self.assertRaises(ConnectionDoesNotExist):

@@ -4,6 +4,8 @@ import subprocess
 import tempfile
 from io import StringIO
 from pathlib import Path
+from typing import TextIO
+from typing.io import BinaryIO
 
 from botocore.exceptions import ClientError
 from django.conf import settings
@@ -29,7 +31,7 @@ def get_frontend():
 class DjangoFrontend(AbstractFrontend):
     @staticmethod
     def export_sql(database: str = '', alternative_binary: str = '',
-                   alternative_args: list | None = None) -> str:
+                   alternative_args: list | None = None) -> TextIO | BinaryIO:
         """
         Export SQL from the database using the specific provider
 
