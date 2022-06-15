@@ -13,6 +13,13 @@ def get_frontend():
 
 class MockFrontend(AbstractFrontend):
     @staticmethod
+    def export_sql(database: str = '') -> str:
+        """
+        Exports SQL files from the database
+        """
+        pass
+
+    @staticmethod
     def pull_backup_bytes(backup_version: str, remote_key: str,
                           backend: AbstractBackend,
                           bucket_name: str,
