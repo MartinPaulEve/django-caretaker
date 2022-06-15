@@ -3,7 +3,9 @@ import logging
 import tempfile
 from io import StringIO
 from pathlib import Path
-from time import sleep
+import subprocess
+
+from django.db import DEFAULT_DB_ALIAS, connections
 
 from botocore.exceptions import ClientError
 from django.conf import settings
@@ -14,12 +16,47 @@ from caretaker.frontend.abstract_frontend import AbstractFrontend, FrontendError
 from caretaker.utils import log, file
 from caretaker.utils.zip import create_zip_file
 
+from django.core.management.base import BaseCommand, CommandError
+import caretaker.frontend.frontends.utils as frontend_utils
 
 def get_frontend():
     return DjangoFrontend()
 
 
 class DjangoFrontend(AbstractFrontend):
+    @staticmethod
+    def export_sql(database: str = '') -> str:
+
+        database = database if database else DEFAULT_DB_ALIAS
+        connection = connections[database]
+
+        # load the database patch plugins
+        frontend_utils.PluginLoader.patch(connection)
+
+        print(connection.__dict__)
+
+        try:
+            pass
+        except FileNotFoundError:
+            # Note that we're assuming the FileNotFoundError relates to the
+            # command missing. It could be raised for some other reason, in
+            # which case this error message would be inaccurate. Still, this
+            # message catches the common case.
+            raise CommandError(
+                "You appear not to have the %r program installed or on "
+                "your path."
+                % connection.client.executable_name
+            )
+        except subprocess.CalledProcessError as e:
+            raise CommandError(
+                '"%s" returned non-zero exit status %s.'
+                % (
+                    " ".join(e.cmd),
+                    e.returncode,
+                ),
+                returncode=e.returncode,
+            )
+
     @staticmethod
     def pull_backup_bytes(backup_version: str, remote_key: str,
                           backend: AbstractBackend,
