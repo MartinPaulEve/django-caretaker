@@ -77,7 +77,7 @@ class DjangoFrontend(AbstractFrontend):
                 raise CommandError(
                     '"%s" returned non-zero exit status %s.'
                     % (
-                        " ".join(e.cmd),
+                        e.cmd,
                         e.returncode,
                     ),
                     returncode=e.returncode,

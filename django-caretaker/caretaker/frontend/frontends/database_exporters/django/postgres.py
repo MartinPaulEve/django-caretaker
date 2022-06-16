@@ -1,23 +1,23 @@
 import logging
 
 from django.db.backends.base.base import BaseDatabaseWrapper
+from django.db.backends.postgresql.client import DatabaseClient
 
 from caretaker.frontend.frontends.database_exporters. \
     abstract_database_exporter import AbstractDatabaseExporter
 from caretaker.frontend.frontends.utils import DatabasePatcher
 from caretaker.utils import log
+
 from caretaker.frontend.frontends.database_exporters.django import utils
 from caretaker.frontend.frontends import utils as frontend_utils
 
-from django.db.backends.sqlite3.client import DatabaseClient
 
-
-class SQLiteDatabaseExporter(AbstractDatabaseExporter):
+class PostgresDatabaseExporter(AbstractDatabaseExporter):
     """
     The SQLite database exporters
     """
 
-    _binary_name = 'sqlite3'
+    _binary_name = 'pg_dump'
 
     @property
     def binary_file(self) -> str:
@@ -40,7 +40,7 @@ class SQLiteDatabaseExporter(AbstractDatabaseExporter):
     def __init__(self, logger: logging.Logger | None = None):
         super().__init__(logger)
 
-        self.logger = log.get_logger('caretaker-django-sqlite-exporter')
+        self.logger = log.get_logger('caretaker-django-postgres-exporter')
 
     @property
     def database_exporter_name(self) -> str:
@@ -49,7 +49,7 @@ class SQLiteDatabaseExporter(AbstractDatabaseExporter):
 
         :return: a string of the exporter name
         """
-        return 'SQLite'
+        return 'Postgresql'
 
     @property
     def handles(self) -> str:
@@ -58,7 +58,7 @@ class SQLiteDatabaseExporter(AbstractDatabaseExporter):
 
         :return: a string of the database name (e.g. django.db.backends.sqlite3)
         """
-        return 'django.db.backends.sqlite3'
+        return 'django.db.backends.postgresql'
 
     def args_and_env(self, connection: BaseDatabaseWrapper,
                      alternative_binary: str = '',
@@ -73,7 +73,7 @@ class SQLiteDatabaseExporter(AbstractDatabaseExporter):
         """
         return utils.delegate_settings_to_cmd_args(
             alternative_args=str(frontend_utils.ternary_switch(
-                '.dump', alternative_args)),
+                '', alternative_args)),
             binary_name=str(frontend_utils.ternary_switch(
                 self._binary_name, alternative_binary)),
             settings_dict=connection.settings_dict,
