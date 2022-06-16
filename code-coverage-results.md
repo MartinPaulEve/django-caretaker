@@ -21,6 +21,6 @@ tests.frontend.django.backend.s3 | 100% | 100% | ✔
 tests.frontend.django.backend.s3.commands | 100% | 100% | ✔
 tests.frontend.django.database_exporters | 100% | 100% | ✔
 utils | 100% | 100% | ✔
-**Summary** | **100%** (1515 / 1515) | **100%** (323 / 323) | ✔
+**Summary** | **100%** (1596 / 1596) | **100%** (351 / 351) | ✔
 
 _Minimum allowed line rate is `60%`_
