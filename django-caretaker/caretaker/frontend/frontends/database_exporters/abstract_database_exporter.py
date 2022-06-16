@@ -138,7 +138,7 @@ class AbstractDatabaseExporter(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def patch(connection: BaseDatabaseWrapper) -> bool:
         """
-        Export SQL from the database using the specific provider
+        Monkey patch the underlying database exporter to have an export_sql method
 
         :param connection: the connection object
         :return: boolean of whether the object was patched
