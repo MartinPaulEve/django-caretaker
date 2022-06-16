@@ -22,6 +22,6 @@ caretaker.tests.frontend.django.backend.s3 | 100% | 100% | ✔
 caretaker.tests.frontend.django.backend.s3.commands | 100% | 100% | ✔
 caretaker.tests.frontend.django.database_exporters | 100% | 100% | ✔
 caretaker.utils | 100% | 100% | ✔
-**Summary** | **100%** (1786 / 1786) | **100%** (391 / 391) | ✔
+**Summary** | **100%** (1758 / 1758) | **100%** (387 / 387) | ✔
 
 _Minimum allowed line rate is `60%`_
