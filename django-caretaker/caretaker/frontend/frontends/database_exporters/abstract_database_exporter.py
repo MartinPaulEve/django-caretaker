@@ -6,8 +6,11 @@ from typing import TextIO
 from typing.io import BinaryIO
 
 from django.db.backends.base.base import BaseDatabaseWrapper
+from django.db.backends.base.client import BaseDatabaseClient
 
 from caretaker.frontend.frontends.utils import BufferedProcessReader
+from caretaker.frontend.frontends.database_exporters.django import utils
+from caretaker.frontend.frontends import utils as frontend_utils
 
 
 class AbstractDatabaseExporter(metaclass=abc.ABCMeta):
@@ -49,10 +52,40 @@ class AbstractDatabaseExporter(metaclass=abc.ABCMeta):
         """
         pass
 
+    def _binary_final(self, alternative_binary: str) -> str:
+        """
+        The final binary to use, allowing a provider to change this if necessary
+
+        :param alternative_binary:
+        :return: the final binary
+        """
+        return str(frontend_utils.ternary_switch(self.binary_file,
+                                                 alternative_binary))
+
     @abc.abstractmethod
+    def alternative_args(self, alternative_args: list | None) -> str:
+        """
+        A method that substitutes in alternative arguments to any called process
+
+        :param alternative_args: the alternative arguments to use
+        :return: a string of arguments
+        """
+        pass
+
+    @abc.abstractmethod
+    def client_type(self, connection: BaseDatabaseWrapper) \
+            -> BaseDatabaseClient:
+        """
+        The type of client object to which to delegate command construction
+
+        :param connection: the BaseDatabaseWrapper calling this
+        :return: a BaseDatabaseClient
+        """
+        pass
+
     def args_and_env(self, connection: BaseDatabaseWrapper,
                      alternative_binary: str = '',
-                     alternative_args: list | None = None) -> (str, list, dict):
+                     alternative_args: list | None = None) -> (list, dict):
         """
         Returns the parameters needed to export SQL for this provider
 
@@ -61,7 +94,12 @@ class AbstractDatabaseExporter(metaclass=abc.ABCMeta):
         :param alternative_args: a different set of cmdline args to pass
         :return: 2-tuple of array of arguments and dict of environment variables
         """
-        pass
+        return utils.delegate_settings_to_cmd_args(
+            alternative_args=self.alternative_args(alternative_args),
+            binary_name=self._binary_final(alternative_binary),
+            settings_dict=connection.settings_dict,
+            database_client=self.client_type(connection)
+        )
 
     def export_sql(self, connection: BaseDatabaseWrapper,
                    alternative_binary: str = '',

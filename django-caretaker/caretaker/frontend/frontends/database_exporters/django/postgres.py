@@ -1,15 +1,14 @@
 import logging
 
 from django.db.backends.base.base import BaseDatabaseWrapper
+from django.db.backends.base.client import BaseDatabaseClient
 from django.db.backends.postgresql.client import DatabaseClient
 
+from caretaker.frontend.frontends import utils as frontend_utils
 from caretaker.frontend.frontends.database_exporters. \
     abstract_database_exporter import AbstractDatabaseExporter
 from caretaker.frontend.frontends.utils import DatabasePatcher
 from caretaker.utils import log
-
-from caretaker.frontend.frontends.database_exporters.django import utils
-from caretaker.frontend.frontends import utils as frontend_utils
 
 
 class PostgresDatabaseExporter(AbstractDatabaseExporter):
@@ -60,25 +59,24 @@ class PostgresDatabaseExporter(AbstractDatabaseExporter):
         """
         return 'django.db.backends.postgresql'
 
-    def args_and_env(self, connection: BaseDatabaseWrapper,
-                     alternative_binary: str = '',
-                     alternative_args: list | None = None) -> (list, dict):
+    def alternative_args(self, alternative_args: list | None) -> str:
         """
-        Returns the parameters needed to export SQL for this provider
+        A method that substitutes in alternative arguments to any called process
 
-        :param connection: the connection object
-        :param alternative_binary: the alternative binary to use
-        :param alternative_args: a different set of cmdline args to pass
-        :return: 2-tuple of array of arguments and dict of environment variables
+        :param alternative_args: the alternative arguments to use
+        :return: a string of arguments
         """
-        return utils.delegate_settings_to_cmd_args(
-            alternative_args=str(frontend_utils.ternary_switch(
-                '', alternative_args)),
-            binary_name=str(frontend_utils.ternary_switch(
-                self._binary_name, alternative_binary)),
-            settings_dict=connection.settings_dict,
-            database_client=DatabaseClient(connection=connection)
-        )
+        return str(frontend_utils.ternary_switch('', alternative_args))
+
+    def client_type(self, connection: BaseDatabaseWrapper) \
+            -> BaseDatabaseClient:
+        """
+        The type of client object to which to delegate command construction
+
+        :param connection: the BaseDatabaseWrapper calling this
+        :return: a BaseDatabaseClient
+        """
+        return DatabaseClient(connection=connection)
 
     def patch(self, connection: BaseDatabaseWrapper) -> bool:
         """

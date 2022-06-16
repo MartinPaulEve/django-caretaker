@@ -116,6 +116,9 @@ Reload the database:
 
     manage.py loaddata /home/user/data.json
 
+## A note on Oracle support
+SQL export is not available for Oracle. It's a nightmare to get Oracle tools installed on our testing systems. Hence, Oracle systems will have to use the old dumpdata methods. 
+
 ## Credits
 * [A context manager for files or stdout]((https://stackoverflow.com/a/17603000/349003)) by Wolph.
 * [AWS CLI](https://aws.amazon.com/cli/) for interactions with AWS.
