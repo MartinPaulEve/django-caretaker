@@ -1,4 +1,7 @@
+import sys
 import zipfile
+from contextlib import contextmanager
+from io import StringIO
 from pathlib import Path
 
 import botocore.exceptions
@@ -68,3 +71,19 @@ def boto3_error(operation_name: str) -> botocore.exceptions.ClientError:
     error = {'Error': sub_error}
     return botocore.exceptions.ClientError(operation_name=operation_name,
                                            error_response=error)
+
+
+@contextmanager
+def captured_output():
+    """
+    Capture the value of stdout and stderr for testing
+
+    :return: stdout and stderr
+    """
+    new_out, new_err = StringIO(), StringIO()
+    old_out, old_err = sys.stdout, sys.stderr
+    try:
+        sys.stdout, sys.stderr = new_out, new_err
+        yield sys.stdout, sys.stderr
+    finally:
+        sys.stdout, sys.stderr = old_out, old_err

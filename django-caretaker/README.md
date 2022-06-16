@@ -117,11 +117,14 @@ Reload the database:
     manage.py loaddata /home/user/data.json
 
 ## Credits
+* [A context manager for files or stdout]((https://stackoverflow.com/a/17603000/349003)) by Wolph.
 * [AWS CLI](https://aws.amazon.com/cli/) for interactions with AWS.
+* [Captured output](https://stackoverflow.com/a/17981937/349003) by Rob Kennedy.
 * [Django](https://www.djangoproject.com/) for the ORM and caching system.
 * [django-click](https://github.com/GaretJax/django-click) for command-line management commands.
 * [django-dbbackup](https://github.com/jazzband/django-dbbackup) for hints and tips.
 * [Git](https://git-scm.com/) from Linus Torvalds _et al_.
 * [.gitignore](https://github.com/github/gitignore) from Github.
+* [How to read large Popen calls using select](https://stackoverflow.com/a/40929169/349003) by vz0.
 * [Rich](https://github.com/Textualize/rich) for beautiful output.
 * [Terraform](https://www.terraform.io/) by Hashicorp.

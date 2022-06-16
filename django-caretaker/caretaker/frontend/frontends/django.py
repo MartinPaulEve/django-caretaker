@@ -4,6 +4,8 @@ import subprocess
 import tempfile
 from io import StringIO
 from pathlib import Path
+from typing import TextIO
+from typing.io import BinaryIO
 
 from botocore.exceptions import ClientError
 from django.conf import settings
@@ -29,13 +31,15 @@ def get_frontend():
 class DjangoFrontend(AbstractFrontend):
     @staticmethod
     def export_sql(database: str = '', alternative_binary: str = '',
-                   alternative_args: list | None = None) -> str:
+                   alternative_args: list | None = None,
+                   output_file: str = '-') -> TextIO | BinaryIO:
         """
         Export SQL from the database using the specific provider
 
         :param database: the database to export
         :param alternative_binary: a different binary file to run
         :param alternative_args: a different set of cmdline args to pass
+        :param output_file: an output file to write to rather than stdout
         :return: a string of the database output
         """
 
@@ -54,18 +58,19 @@ class DjangoFrontend(AbstractFrontend):
                 return connection.export_sql(
                     connection=connection,
                     alternative_binary=alternative_binary,
-                    alternative_args=alternative_args
+                    alternative_args=alternative_args,
+                    output_file=output_file
                 )
             except FileNotFoundError:
                 # Note that we're assuming the FileNotFoundError relates to the
                 # command missing. It could be raised for some other reason, in
                 # which case this error message would be inaccurate. Still, this
                 # message catches the common case.
-                binary_name = exporter.binary_name \
+                binary_name = exporter.binary_file \
                     if not alternative_binary else alternative_binary
                 raise CommandError(
                     "You appear not to have the %r program installed or on "
-                    "your path."
+                    "your path or we could not write to the output filename."
                     % binary_name
                 )
             except subprocess.CalledProcessError as e:

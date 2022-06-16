@@ -1,3 +1,6 @@
+import tempfile
+from pathlib import Path
+
 import django
 from django.core.management import CommandError
 from django.db import DEFAULT_DB_ALIAS, connections
@@ -5,13 +8,14 @@ from django.db.backends.base.base import BaseDatabaseWrapper
 from django.utils.connection import ConnectionDoesNotExist
 from moto import mock_s3
 
-from caretaker.tests.frontend.django.backend.s3.caretaker_test import \
-    AbstractDjangoS3Test
 from caretaker.frontend.frontends.database_exporters. \
     abstract_database_exporter import AbstractDatabaseExporter, \
     DatabaseExporterNotFoundError
-from caretaker.frontend.frontends.database_exporters.\
+from caretaker.frontend.frontends.database_exporters. \
     django.sqlite import SQLiteDatabaseExporter
+from caretaker.tests.frontend.django.backend.s3.caretaker_test import \
+    AbstractDjangoS3Test
+from caretaker.tests.utils import captured_output
 
 
 @mock_s3
@@ -30,7 +34,9 @@ class TestSQLiteDatabaseExporter(AbstractDjangoS3Test):
     def test(self):
         self.logger.info('Testing SQLiteDatabaseExporter')
 
-        self.assertIn('COMMIT', self.frontend.export_sql())
+        with captured_output() as (stdout, stderr):
+            self.frontend.export_sql()
+            self.assertIn('COMMIT', stdout.getvalue())
 
         # check when we get no database
         with self.assertRaises(ConnectionDoesNotExist):
@@ -52,10 +58,22 @@ class TestSQLiteDatabaseExporter(AbstractDjangoS3Test):
         # now test with bad args
         with self.assertRaises(CommandError):
             connection.settings_dict['ENGINE'] = 'django.db.backends.sqlite3'
-            print(self.frontend.export_sql(alternative_args='JUNK_COMMAND'))
+            self.frontend.export_sql(alternative_args='JUNK_COMMAND')
+
+        # test downloading to a file
+        with tempfile.TemporaryDirectory() as temporary_directory_name:
+            output_file = 'test.sql'
+            output_filename = Path(temporary_directory_name) / output_file
+
+            self.frontend.export_sql(output_file=str(output_filename))
+
+            self.assertTrue(output_filename.exists())
+
+            with output_filename.open('r') as in_file:
+                output = in_file.read()
+                self.assertIn('COMMIT', output)
 
         # test property works
-
         exporter = SQLiteDatabaseExporter()
         self.assertEqual(exporter.database_exporter_name, 'SQLite')
 

@@ -4,6 +4,7 @@ import io
 import logging
 import sys
 from pathlib import Path
+from typing import TextIO, BinaryIO
 
 from django.conf import settings
 
@@ -30,13 +31,15 @@ class AbstractFrontend(metaclass=abc.ABCMeta):
     @staticmethod
     @abc.abstractmethod
     def export_sql(database: str = '', alternative_binary: str = '',
-                   alternative_args: list | None = None) -> str:
+                   alternative_args: list | None = None,
+                   output_file: str = '-') -> TextIO | BinaryIO:
         """
         Export SQL from the database using the specific provider
 
         :param database: the database to export
         :param alternative_binary: a different binary file to run
         :param alternative_args: a different set of cmdline args to pass
+        :param output_file: an output file to write to rather than stdout
         :return: a string of the database output
         """
         pass

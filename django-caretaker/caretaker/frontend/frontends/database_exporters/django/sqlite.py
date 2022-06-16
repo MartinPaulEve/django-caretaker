@@ -1,14 +1,12 @@
 import logging
 import os
-import subprocess
 
 from django.db.backends.base.base import BaseDatabaseWrapper
 
-from caretaker.utils import log
-from caretaker.frontend.frontends.utils import DatabasePatcher
-
-from caretaker.frontend.frontends.database_exporters.\
+from caretaker.frontend.frontends.database_exporters. \
     abstract_database_exporter import AbstractDatabaseExporter
+from caretaker.frontend.frontends.utils import DatabasePatcher
+from caretaker.utils import log
 
 
 class SQLiteDatabaseExporter(AbstractDatabaseExporter):
@@ -59,16 +57,16 @@ class SQLiteDatabaseExporter(AbstractDatabaseExporter):
         """
         return 'django.db.backends.sqlite3'
 
-    def export_sql(self, connection: BaseDatabaseWrapper,
-                   alternative_binary: str = '',
-                   alternative_args: list | None = None) -> str:
+    def args_and_env(self, connection: BaseDatabaseWrapper,
+                     alternative_binary: str = '',
+                     alternative_args: list | None = None) -> (list, dict):
         """
-        Export SQL from the database using the specific provider
+        Returns the parameters needed to export SQL for this provider
 
         :param connection: the connection object
         :param alternative_binary: the alternative binary to use
         :param alternative_args: a different set of cmdline args to pass
-        :return: a string of the database to output
+        :return: 2-tuple of array of arguments and dict of environment variables
         """
         binary_name = self._binary_name \
             if not alternative_binary else alternative_binary
@@ -78,21 +76,7 @@ class SQLiteDatabaseExporter(AbstractDatabaseExporter):
         env = None
         env = {**os.environ, **env} if env else None
 
-        process = subprocess.Popen(args, env=env, stdout=subprocess.PIPE)
-
-        outputs = process.communicate()
-        final_output = []
-
-        for output_line in outputs:
-            if output_line:
-                final_output.append(output_line.decode('utf-8'))
-
-        if process.returncode != 0:
-            raise subprocess.CalledProcessError(returncode=process.returncode,
-                                                cmd=''.join(args),
-                                                output='\n'.join(final_output))
-
-        return '\n'.join(final_output)
+        return args, env
 
     def patch(self, connection: BaseDatabaseWrapper) -> bool:
         """
