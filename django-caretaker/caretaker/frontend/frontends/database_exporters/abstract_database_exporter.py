@@ -91,7 +91,7 @@ class AbstractDatabaseExporter(metaclass=abc.ABCMeta):
 
         if process.returncode != 0:
             raise subprocess.CalledProcessError(returncode=process.returncode,
-                                                cmd=''.join(args),
+                                                cmd=' '.join(args),
                                                 output='Output not available')
 
         return sys.stdout if output_file == '-' else output_file

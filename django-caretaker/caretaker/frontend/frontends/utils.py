@@ -12,7 +12,9 @@ class DatabasePatcher:
     def patch(database: BaseDatabaseWrapper) -> (bool, object):
         module_dict = {
             'caretaker.frontend.frontends.database_exporters.django.sqlite':
-                'SQLiteDatabaseExporter'
+                'SQLiteDatabaseExporter',
+            'caretaker.frontend.frontends.database_exporters.django.postgres':
+                'PostgresDatabaseExporter',
         }
 
         for module_name, class_name in module_dict.items():
