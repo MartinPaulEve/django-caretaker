@@ -44,6 +44,7 @@ class DjangoFrontend(AbstractFrontend):
         """
 
         database: str = database if database else DEFAULT_DB_ALIAS
+
         connection: BaseDatabaseWrapper | AbstractDatabaseExporter \
             = connections[database]
 

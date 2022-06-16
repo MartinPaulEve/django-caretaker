@@ -12,6 +12,16 @@ jobs:
     name: Run Django Tests
     runs-on: ubuntu-latest
     services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_DATABASE: testing
+          MYSQL_USER: test
+          MYSQL_PASSWORD: example
+          MYSQL_ROOT_PASSWORD: rootpassword
+        ports:
+          - 33306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
       db:
         image: postgres:12.3-alpine
         env:

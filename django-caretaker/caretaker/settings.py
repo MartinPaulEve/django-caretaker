@@ -98,6 +98,14 @@ elif SYSTEM_ENV == 'GITHUB_WORKFLOW':
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         },
+        'mysql': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'testing',
+            'USER': 'root',
+            'PASSWORD': 'rootpassword',
+            'HOST': '127.0.0.1',
+            'PORT': '3306',
+        },
     }
 else:
     DEBUG = True
@@ -114,6 +122,14 @@ else:
             'PASSWORD': 'example',
             'HOST': '127.0.0.1',
             'PORT': '5430',
+        },
+        'mysql': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'testing',
+            'USER': 'root',
+            'PASSWORD': 'example',
+            'HOST': '127.0.0.1',
+            'PORT': '3306',
         },
     }
 
@@ -170,4 +186,3 @@ CARETAKER_BACKEND = 'Amazon S3'
 CARETAKER_BACKENDS = ['caretaker.backend.backends.s3']
 CARETAKER_FRONTEND = 'Django'
 CARETAKER_FRONTENDS = ['caretaker.frontend.frontends.django']
-

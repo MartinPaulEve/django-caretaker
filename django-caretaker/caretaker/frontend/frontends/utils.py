@@ -5,7 +5,6 @@ import subprocess
 import sys
 
 from django.db.backends.base.base import BaseDatabaseWrapper
-from django.db.backends.base.client import BaseDatabaseClient
 
 
 class DatabasePatcher:
@@ -16,6 +15,8 @@ class DatabasePatcher:
                 'SQLiteDatabaseExporter',
             'caretaker.frontend.frontends.database_exporters.django.postgres':
                 'PostgresDatabaseExporter',
+            'caretaker.frontend.frontends.database_exporters.django.mysql':
+                'MysqlDatabaseExporter',
         }
 
         for module_name, class_name in module_dict.items():
