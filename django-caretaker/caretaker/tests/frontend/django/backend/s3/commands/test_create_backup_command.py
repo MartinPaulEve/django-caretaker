@@ -48,6 +48,18 @@ class TestCreateBackupDjangoS3Command(AbstractDjangoS3Test):
             self.assertTrue(json_file.exists())
             self.assertTrue(data_file.exists())
 
+            # now test SQL mode
+            sql_file = 'data.sql'
+
+            create_backup.command.callback(
+                output_directory=temporary_directory_name,
+                additional_files=(temporary_directory_name,), sql_mode=True,
+                data_file=sql_file
+            )
+
+            sql_file = Path(temporary_directory_name) / sql_file
+            self.assertTrue(sql_file.exists())
+
             with self.assertLogs(level='ERROR') as log:
                 create_backup.command.callback(
                     output_directory=temporary_directory_name,

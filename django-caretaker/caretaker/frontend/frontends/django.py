@@ -11,7 +11,7 @@ from botocore.exceptions import ClientError
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.db import DEFAULT_DB_ALIAS, connections
+from django.db import DEFAULT_DB_ALIAS, connections, transaction
 from django.db.backends.base.base import BaseDatabaseWrapper
 
 import caretaker.frontend.frontends.utils as frontend_utils
@@ -125,8 +125,12 @@ class DjangoFrontend(AbstractFrontend):
     def create_backup(output_directory: str, data_file: str = 'data.json',
                       archive_file: str = 'media.zip',
                       path_list: list | None = None,
-                      raise_on_error: bool = False) -> (Path | None,
-                                                        Path | None):
+                      raise_on_error: bool = False,
+                      sql_mode: bool = False,
+                      database: str = DEFAULT_DB_ALIAS,
+                      alternative_binary: str = '',
+                      alternative_arguments: str = '') -> (Path | None,
+                                                           Path | None):
         """
         Creates a set of local backup files
 
@@ -135,71 +139,86 @@ class DjangoFrontend(AbstractFrontend):
         :param archive_file: the output archive file (e.g. media.zip)
         :param path_list: the list of paths to bundle in the zip
         :param raise_on_error: whether to raise underlying exceptions if there is a client error
+        :param sql_mode: whether to export in SQL format instead of JSON dump
+        :param database: the database to export (will use default if unspecified)
+        :param alternative_arguments: alternative arguments to pass in SQL mode
+        :param alternative_binary: alternative export binary to use in SQL mode
         :return: a 2-tuple of pathlib.Path objects to the data file and archive file
         """
-        logger = log.get_logger('caretaker-django')
+        database = database if database else DEFAULT_DB_ALIAS
 
-        if not output_directory:
-            logger.error('No output directory specified')
+        with transaction.atomic(using=database):
+            logger = log.get_logger('caretaker-django')
 
-            if raise_on_error:
-                raise FileNotFoundError
+            if not output_directory:
+                logger.error('No output directory specified')
 
-            return None, None
+                if raise_on_error:
+                    raise FileNotFoundError
 
-        # create the directory if needed
-        output_directory = Path(output_directory)
+                return None, None
 
-        output_directory.mkdir(parents=True, exist_ok=True)
+            # create the directory if needed
+            output_directory = Path(output_directory)
 
-        output_directory = file.normalize_path(output_directory)
+            output_directory.mkdir(parents=True, exist_ok=True)
 
-        # setup redirect so that we can pipe the output of dump data to
-        # our output file
-        buffer = StringIO()
-        call_command('dumpdata', stdout=buffer)
-        buffer.seek(0)
+            output_directory = file.normalize_path(output_directory)
 
-        with (output_directory / data_file).open('w') as out_file:
-            out_file.write(buffer.read())
-            logger.info('Wrote {}'.format(data_file))
+            if not sql_mode:
+                # setup redirect so that we can pipe the output of dump data to
+                # our output file
+                buffer = StringIO()
+                call_command('dumpdata', stdout=buffer)
+                buffer.seek(0)
 
-        # now create a zip of the media directory and any others specified
-        path_list = [] if not path_list else path_list
-        path_list = list(set(path_list))
+                with (output_directory / data_file).open('w') as out_file:
+                    out_file.write(buffer.read())
+                    logger.info('Wrote {}'.format(data_file))
+            else:
+                DjangoFrontend.export_sql(
+                    database='', alternative_binary='', alternative_args=[],
+                    output_file=str(output_directory / data_file)
+                )
 
-        if hasattr(settings, 'MEDIA_ROOT') and \
-                settings.MEDIA_ROOT and settings.MEDIA_ROOT not in path_list:
-            logger.info('Appending MEDIA_ROOT')
-            path_list.append(settings.MEDIA_ROOT)
+            # now create a zip of the media directory and any others specified
+            path_list = [] if not path_list else path_list
+            path_list = list(set(path_list))
 
-        if hasattr(settings, 'CARETAKER_ADDITIONAL_BACKUP_PATHS') \
-                and settings.CARETAKER_ADDITIONAL_BACKUP_PATHS \
-                and settings.CARETAKER_ADDITIONAL_BACKUP_PATHS not in path_list:
-            logger.info('Appending CARETAKER_ADDITIONAL_BACKUP_PATHS')
-            path_list.extend(settings.CARETAKER_ADDITIONAL_BACKUP_PATHS)
+            if hasattr(settings, 'MEDIA_ROOT') and \
+                    settings.MEDIA_ROOT and settings.MEDIA_ROOT \
+                    not in path_list:
+                logger.info('Appending MEDIA_ROOT')
+                path_list.append(settings.MEDIA_ROOT)
 
-        path_list_final = []
+            if hasattr(settings, 'CARETAKER_ADDITIONAL_BACKUP_PATHS') \
+                    and settings.CARETAKER_ADDITIONAL_BACKUP_PATHS \
+                    and settings.CARETAKER_ADDITIONAL_BACKUP_PATHS \
+                    not in path_list:
+                logger.info('Appending CARETAKER_ADDITIONAL_BACKUP_PATHS')
+                path_list.extend(settings.CARETAKER_ADDITIONAL_BACKUP_PATHS)
 
-        for path in path_list:
-            path = file.normalize_path(path)
+            path_list_final = []
 
-            path_list_final.append(file.normalize_path(path))
+            for path in path_list:
+                path = file.normalize_path(path)
 
-            if not path.exists():
-                logger.error('Could not find {}'.format(path))
-                raise FileNotFoundError()
+                path_list_final.append(file.normalize_path(path))
 
-        logger.info('Paths to be zipped: '.format(path_list_final))
+                if not path.exists():
+                    logger.error('Could not find {}'.format(path))
+                    raise FileNotFoundError()
 
-        zip_file = create_zip_file(
-            input_paths=list(path_list_final),
-            output_file=Path(output_directory / archive_file)
-        )
+            logger.info('Paths to be zipped: '.format(path_list_final))
 
-        logger.info('Wrote {} ({})'.format(archive_file, zip_file))
+            zip_file = create_zip_file(
+                input_paths=list(path_list_final),
+                output_file=Path(output_directory / archive_file)
+            )
 
-        return output_directory / data_file, zip_file
+            logger.info('Wrote {} ({})'.format(archive_file, zip_file))
+
+            return output_directory / data_file, zip_file
 
     @staticmethod
     def generate_terraform(output_directory: str,

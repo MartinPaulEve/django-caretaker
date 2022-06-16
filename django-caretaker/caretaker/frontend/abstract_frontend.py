@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import TextIO, BinaryIO
 
 from django.conf import settings
+from django.db import DEFAULT_DB_ALIAS
 
 from caretaker.backend.abstract_backend import AbstractBackend, \
     BackendFactory, StoreOutcome
@@ -49,8 +50,12 @@ class AbstractFrontend(metaclass=abc.ABCMeta):
     def create_backup(output_directory: str, data_file: str = 'data.json',
                       archive_file: str = 'media.zip',
                       path_list: list | None = None,
-                      raise_on_error: bool = False) -> (Path | None,
-                                                        Path | None):
+                      raise_on_error: bool = False,
+                      sql_mode: bool = False,
+                      database: str = DEFAULT_DB_ALIAS,
+                      alternative_binary: str = '',
+                      alternative_arguments: str = '') -> (Path | None,
+                                                           Path | None):
         """
         Creates a set of local backup files
 
@@ -59,6 +64,10 @@ class AbstractFrontend(metaclass=abc.ABCMeta):
         :param archive_file: the output archive file (e.g. media.zip)
         :param path_list: the list of paths to bundle in the zip
         :param raise_on_error: whether to raise underlying exceptions if there is a client error
+        :param sql_mode: whether to export in SQL format instead of JSON dump
+        :param database: the database to export (will use default if unspecified)
+        :param alternative_arguments: alternative arguments to pass in SQL mode
+        :param alternative_binary: alternative export binary to use in SQL mode
         :return: a 2-tuple of pathlib.Path objects to the data file and archive file
         """
         pass

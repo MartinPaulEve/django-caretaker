@@ -1,6 +1,5 @@
-from typing.io import TextIO, BinaryIO
-
 import djclick as click
+from django.db import DEFAULT_DB_ALIAS, transaction
 
 from caretaker.frontend.abstract_frontend import FrontendFactory, \
     FrontendNotFoundError
@@ -8,7 +7,8 @@ from caretaker.utils import log, file
 
 
 @click.command()
-@click.option('--database', '-d', help="The database to use", default='')
+@click.option('--database', '-d', help="The database to use",
+              default=DEFAULT_DB_ALIAS)
 @click.option('--frontend-name', '-f',
               help='The name of the frontend to use',
               type=str)
@@ -21,31 +21,34 @@ from caretaker.utils import log, file
 @click.option('--alternative-arguments',
               help='The alternative arguments to use',
               type=str, default='')
-def command(database: str, frontend_name: str,
+def command(frontend_name: str, database: str = DEFAULT_DB_ALIAS,
             output_file: str = '-',
             alternative_binary: str = '', alternative_arguments: str = ''
             ) -> None:
     """
     Exports SQL files from the database
     """
+    database = database if database else DEFAULT_DB_ALIAS
 
-    logger = log.get_logger('caretaker-command')
+    with transaction.atomic(using=database):
+        logger = log.get_logger('caretaker-command')
 
-    try:
-        frontend = FrontendFactory.get_frontend(frontend_name=frontend_name,
-                                                raise_on_none=True)
+        try:
+            frontend = FrontendFactory.get_frontend(frontend_name=frontend_name,
+                                                    raise_on_none=True)
 
-        if output_file != '-':
-            output_file = str(file.normalize_path(output_file))
+            if output_file != '-':
+                output_file = str(file.normalize_path(output_file))
 
-        alternative_arguments = alternative_arguments.split(' ') \
-            if alternative_arguments else None
+            alternative_arguments = alternative_arguments.split(' ') \
+                if alternative_arguments else None
 
-        frontend.export_sql(
-            database=database, alternative_binary=alternative_binary,
-            alternative_args=alternative_arguments, output_file=output_file
-        )
-    except FrontendNotFoundError:
-        logger.error('Unable to find a valid frontend')
-    except PermissionError:
-        logger.error('Unable to open output file {}'.format(output_file))
+            frontend.export_sql(
+                database=database, alternative_binary=alternative_binary,
+                alternative_args=alternative_arguments, output_file=output_file
+            )
+
+        except FrontendNotFoundError:
+            logger.error('Unable to find a valid frontend')
+        except PermissionError:
+            logger.error('Unable to open output file {}'.format(output_file))
