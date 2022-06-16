@@ -120,7 +120,7 @@ Reload the database:
 SQL export is not available for Oracle. It's a nightmare to get Oracle tools installed on our testing systems. Hence, Oracle systems will have to use the old dumpdata methods. 
 
 ## Credits
-* [A context manager for files or stdout]((https://stackoverflow.com/a/17603000/349003)) by Wolph.
+* [A context manager for files or stdout](https://stackoverflow.com/a/17603000/349003) by Wolph.
 * [AWS CLI](https://aws.amazon.com/cli/) for interactions with AWS.
 * [Captured output](https://stackoverflow.com/a/17981937/349003) by Rob Kennedy.
 * [Django](https://www.djangoproject.com/) for the ORM and caching system.
