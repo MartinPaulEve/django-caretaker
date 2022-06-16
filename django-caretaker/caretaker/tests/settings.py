@@ -114,6 +114,15 @@ else:
             'HOST': '127.0.0.1',
             'PORT': '5430',
         },
+        'mysql': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'test_testing',
+            'USER': 'root',
+            'PASSWORD': 'example',
+            'HOST': '127.0.0.1',
+            'PORT': '3306',
+
+        },
     }
 
 

@@ -115,6 +115,14 @@ else:
             'HOST': '127.0.0.1',
             'PORT': '5430',
         },
+        'mysql': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'testing',
+            'USER': 'root',
+            'PASSWORD': 'example',
+            'HOST': '127.0.0.1',
+            'PORT': '3306',
+        },
     }
 
 
@@ -170,4 +178,3 @@ CARETAKER_BACKEND = 'Amazon S3'
 CARETAKER_BACKENDS = ['caretaker.backend.backends.s3']
 CARETAKER_FRONTEND = 'Django'
 CARETAKER_FRONTENDS = ['caretaker.frontend.frontends.django']
-
