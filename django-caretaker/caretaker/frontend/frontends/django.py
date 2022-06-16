@@ -350,8 +350,12 @@ class DjangoFrontend(AbstractFrontend):
                    path_list: list | None = None,
                    backend: AbstractBackend | None = None,
                    bucket_name: str | None = None,
-                   raise_on_error: bool = False) -> (Path | None,
-                                                     Path | None):
+                   raise_on_error: bool = False,
+                   sql_mode: bool = False,
+                   database: str = DEFAULT_DB_ALIAS,
+                   alternative_binary: str = '',
+                   alternative_arguments: str = '') -> (Path | None,
+                                                        Path | None):
         """
         Creates a backup set and pushes it to the remote store
 
@@ -361,6 +365,10 @@ class DjangoFrontend(AbstractFrontend):
         :param backend: the backend to use
         :param bucket_name: the name of the bucket/store
         :param raise_on_error: whether to raise underlying exceptions if there is a client error
+        :param sql_mode: whether to export in SQL format instead of JSON dump
+        :param database: the database to export (will use default if unspecified)
+        :param alternative_arguments: alternative arguments to pass in SQL mode
+        :param alternative_binary: alternative export binary to use in SQL mode
         :return: 2-tuple of pathlib.Path objects to the data file & archive file
         """
         logger = log.get_logger('caretaker-django')
@@ -372,7 +380,11 @@ class DjangoFrontend(AbstractFrontend):
             # create a local backup set in this temporary directory
             json_file, zip_file = DjangoFrontend.create_backup(
                 output_directory=temporary_directory_name,
-                path_list=path_list
+                path_list=path_list, sql_mode=sql_mode,
+                archive_file=archive_file,
+                data_file=data_file,
+                alternative_binary=alternative_binary,
+                alternative_arguments=alternative_arguments
             )
 
             # push the data

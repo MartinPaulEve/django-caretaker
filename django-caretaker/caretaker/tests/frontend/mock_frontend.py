@@ -148,23 +148,30 @@ class MockFrontend(AbstractFrontend):
         pass
 
     @staticmethod
-    def run_backup(output_directory: str, data_file: str = 'data.json',
+    def run_backup(data_file: str = 'data.json',
                    archive_file: str = 'media.zip',
                    path_list: list | None = None,
                    backend: AbstractBackend | None = None,
                    bucket_name: str | None = None,
-                   raise_on_error: bool = False) -> (Path | None,
-                                                     Path | None):
+                   raise_on_error: bool = False,
+                   sql_mode: bool = False,
+                   database: str = DEFAULT_DB_ALIAS,
+                   alternative_binary: str = '',
+                   alternative_arguments: str = '') -> (Path | None,
+                                                        Path | None):
         """
         Creates a backup set and pushes it to the remote store
 
-        :param output_directory: the output directory for the local backup set
         :param data_file: the output data file (e.g. data.json)
         :param archive_file: the output archive file (e.g. media.zip)
         :param path_list: the list of paths to bundle in the zip
         :param backend: the backend to use
         :param bucket_name: the name of the bucket/store
         :param raise_on_error: whether to raise underlying exceptions if there is a client error
+        :param sql_mode: whether to export in SQL format instead of JSON dump
+        :param database: the database to export (will use default if unspecified)
+        :param alternative_arguments: alternative arguments to pass in SQL mode
+        :param alternative_binary: alternative export binary to use in SQL mode
         :return: 2-tuple of pathlib.Path objects to the data file & archive file
         """
         pass
