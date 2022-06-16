@@ -1,16 +1,18 @@
 import abc
-import logging
 import subprocess
 import sys
+from logging import Logger
 from typing import TextIO
 from typing.io import BinaryIO
 
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.base.client import BaseDatabaseClient
 
-from caretaker.frontend.frontends.utils import BufferedProcessReader
-from caretaker.frontend.frontends.database_exporters.django import utils
 from caretaker.frontend.frontends import utils as frontend_utils
+from caretaker.frontend.frontends.database_exporters.django import utils
+from caretaker.frontend.frontends.utils import BufferedProcessReader, \
+    DatabasePatcher
+from caretaker.utils import log
 
 
 class AbstractDatabaseExporter(metaclass=abc.ABCMeta):
@@ -18,9 +20,11 @@ class AbstractDatabaseExporter(metaclass=abc.ABCMeta):
     Ab abstract class for data exporters
     """
 
-    @abc.abstractmethod
-    def __init__(self, logger: logging.Logger | None = None):
-        self.logger = logger
+    _args = ''
+
+    def __init__(self):
+        self.logger: Logger = log.get_logger(
+            'caretaker-django-{}-exporter'.format(self.database_exporter_name))
 
     @property
     @abc.abstractmethod
@@ -60,17 +64,18 @@ class AbstractDatabaseExporter(metaclass=abc.ABCMeta):
         :return: the final binary
         """
         return str(frontend_utils.ternary_switch(self.binary_file,
+
                                                  alternative_binary))
 
-    @abc.abstractmethod
-    def alternative_args(self, alternative_args: list | None) -> str:
+    @property
+    def provided_args(self) -> str:
         """
-        A method that substitutes in alternative arguments to any called process
+        The arguments provided by this implementation
 
-        :param alternative_args: the alternative arguments to use
         :return: a string of arguments
         """
-        pass
+
+        return self._args
 
     @abc.abstractmethod
     def client_type(self, connection: BaseDatabaseWrapper) \
@@ -95,7 +100,9 @@ class AbstractDatabaseExporter(metaclass=abc.ABCMeta):
         :return: 2-tuple of array of arguments and dict of environment variables
         """
         return utils.delegate_settings_to_cmd_args(
-            alternative_args=self.alternative_args(alternative_args),
+            alternative_args=str(
+                frontend_utils.ternary_switch(self.provided_args,
+                                              alternative_args)),
             binary_name=self._binary_final(alternative_binary),
             settings_dict=connection.settings_dict,
             database_client=self.client_type(connection)
@@ -134,16 +141,19 @@ class AbstractDatabaseExporter(metaclass=abc.ABCMeta):
 
         return sys.stdout if output_file == '-' else output_file
 
-    @staticmethod
-    @abc.abstractmethod
-    def patch(connection: BaseDatabaseWrapper) -> bool:
+    def patch(self, connection: BaseDatabaseWrapper) -> bool:
         """
-        Monkey patch the underlying database exporter to have an export_sql method
+        Patches the connection object with a method "export_sql" or removes this method if it's already set to this function's setting
 
         :param connection: the connection object
         :return: boolean of whether the object was patched
         """
-        pass
+        # determine if we can handle this
+        if DatabasePatcher.can_handle(connection, self):
+            connection.export_sql = self.export_sql
+            return True
+
+        return False
 
 
 class DatabaseExporterNotFoundError (Exception):

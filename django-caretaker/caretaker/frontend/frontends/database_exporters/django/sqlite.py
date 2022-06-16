@@ -1,14 +1,9 @@
-import logging
-
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.base.client import BaseDatabaseClient
 from django.db.backends.sqlite3.client import DatabaseClient
 
-from caretaker.frontend.frontends import utils as frontend_utils
 from caretaker.frontend.frontends.database_exporters. \
     abstract_database_exporter import AbstractDatabaseExporter
-from caretaker.frontend.frontends.utils import DatabasePatcher
-from caretaker.utils import log
 
 
 class SQLiteDatabaseExporter(AbstractDatabaseExporter):
@@ -17,6 +12,7 @@ class SQLiteDatabaseExporter(AbstractDatabaseExporter):
     """
 
     _binary_name = 'sqlite3'
+    _args = '.dump'
 
     @property
     def binary_file(self) -> str:
@@ -36,11 +32,6 @@ class SQLiteDatabaseExporter(AbstractDatabaseExporter):
         """
         self._binary_name = value
 
-    def __init__(self, logger: logging.Logger | None = None):
-        super().__init__(logger)
-
-        self.logger = log.get_logger('caretaker-django-sqlite-exporter')
-
     @property
     def database_exporter_name(self) -> str:
         """
@@ -59,15 +50,6 @@ class SQLiteDatabaseExporter(AbstractDatabaseExporter):
         """
         return 'django.db.backends.sqlite3'
 
-    def alternative_args(self, alternative_args: list | None) -> str:
-        """
-        A method that substitutes in alternative arguments to any called process
-
-        :param alternative_args: the alternative arguments to use
-        :return: a string of arguments
-        """
-        return str(frontend_utils.ternary_switch('.dump', alternative_args))
-
     def client_type(self, connection: BaseDatabaseWrapper) \
             -> BaseDatabaseClient:
         """
@@ -77,17 +59,3 @@ class SQLiteDatabaseExporter(AbstractDatabaseExporter):
         :return: a BaseDatabaseClient
         """
         return DatabaseClient(connection=connection)
-
-    def patch(self, connection: BaseDatabaseWrapper) -> bool:
-        """
-        Patches the connection object with a method "export_sql" or removes this method if it's already set to this function's setting
-
-        :param connection: the connection object
-        :return: boolean of whether the object was patched
-        """
-        # determine if we can handle this
-        if DatabasePatcher.can_handle(connection, self):
-            connection.export_sql = self.export_sql
-            return True
-
-        return False
