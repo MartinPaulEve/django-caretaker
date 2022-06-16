@@ -1,5 +1,4 @@
 import logging
-import os
 
 from django.db.backends.base.base import BaseDatabaseWrapper
 
@@ -7,6 +6,10 @@ from caretaker.frontend.frontends.database_exporters. \
     abstract_database_exporter import AbstractDatabaseExporter
 from caretaker.frontend.frontends.utils import DatabasePatcher
 from caretaker.utils import log
+from caretaker.frontend.frontends.database_exporters.django import utils
+from caretaker.frontend.frontends import utils as frontend_utils
+
+from django.db.backends.sqlite3.client import DatabaseClient
 
 
 class SQLiteDatabaseExporter(AbstractDatabaseExporter):
@@ -68,15 +71,14 @@ class SQLiteDatabaseExporter(AbstractDatabaseExporter):
         :param alternative_args: a different set of cmdline args to pass
         :return: 2-tuple of array of arguments and dict of environment variables
         """
-        binary_name = self._binary_name \
-            if not alternative_binary else alternative_binary
-
-        args = [binary_name, connection.settings_dict["NAME"],
-                '.dump' if not alternative_args else alternative_args]
-        env = None
-        env = {**os.environ, **env} if env else None
-
-        return args, env
+        return utils.delegate_settings_to_cmd_args(
+            alternative_args=str(frontend_utils.ternary_switch(
+                '.dump', alternative_args)),
+            binary_name=str(frontend_utils.ternary_switch(
+                self._binary_name, alternative_binary)),
+            settings_dict=connection.settings_dict,
+            database_client=DatabaseClient(connection=connection)
+        )
 
     def patch(self, connection: BaseDatabaseWrapper) -> bool:
         """

@@ -1,13 +1,15 @@
 import logging
 
-import django.db.backends.postgresql.client
 from django.db.backends.base.base import BaseDatabaseWrapper
+from django.db.backends.postgresql.client import DatabaseClient
 
 from caretaker.frontend.frontends.database_exporters. \
     abstract_database_exporter import AbstractDatabaseExporter
 from caretaker.frontend.frontends.utils import DatabasePatcher
 from caretaker.utils import log
-from  django.db.backends.postgresql.client import DatabaseClient
+
+from caretaker.frontend.frontends.database_exporters.django import utils
+from caretaker.frontend.frontends import utils as frontend_utils
 
 
 class PostgresDatabaseExporter(AbstractDatabaseExporter):
@@ -38,7 +40,7 @@ class PostgresDatabaseExporter(AbstractDatabaseExporter):
     def __init__(self, logger: logging.Logger | None = None):
         super().__init__(logger)
 
-        self.logger = log.get_logger('caretaker-django-sqlite-exporter')
+        self.logger = log.get_logger('caretaker-django-postgres-exporter')
 
     @property
     def database_exporter_name(self) -> str:
@@ -47,7 +49,7 @@ class PostgresDatabaseExporter(AbstractDatabaseExporter):
 
         :return: a string of the exporter name
         """
-        return 'SQLite'
+        return 'Postgresql'
 
     @property
     def handles(self) -> str:
@@ -69,20 +71,14 @@ class PostgresDatabaseExporter(AbstractDatabaseExporter):
         :param alternative_args: a different set of cmdline args to pass
         :return: 2-tuple of array of arguments and dict of environment variables
         """
-        binary_name = self._binary_name \
-            if not alternative_binary else alternative_binary
-
-        settings_dict = connection.settings_dict
-
-        alternative_args = [] if not alternative_args else alternative_args
-
-        args, env = DatabaseClient.settings_to_cmd_args_env(settings_dict,
-                                                            alternative_args)
-
-        # patch the binary name
-        args[0] = binary_name
-
-        return args, (env or None)
+        return utils.delegate_settings_to_cmd_args(
+            alternative_args=str(frontend_utils.ternary_switch(
+                '', alternative_args)),
+            binary_name=str(frontend_utils.ternary_switch(
+                self._binary_name, alternative_binary)),
+            settings_dict=connection.settings_dict,
+            database_client=DatabaseClient(connection=connection)
+        )
 
     def patch(self, connection: BaseDatabaseWrapper) -> bool:
         """

@@ -78,7 +78,7 @@ class TestPostgresDatabaseExporter(AbstractDjangoS3Test):
 
         # test property works
         exporter = PostgresDatabaseExporter()
-        self.assertEqual(exporter.database_exporter_name, 'SQLite')
+        self.assertEqual(exporter.database_exporter_name, 'Postgresql')
 
         exporter.binary_file = 'new_binary'
         self.assertEqual(exporter.binary_file, 'new_binary')

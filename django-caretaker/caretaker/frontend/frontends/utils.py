@@ -5,6 +5,7 @@ import subprocess
 import sys
 
 from django.db.backends.base.base import BaseDatabaseWrapper
+from django.db.backends.base.client import BaseDatabaseClient
 
 
 class DatabasePatcher:
@@ -88,3 +89,14 @@ def smart_open(filename: str = None):
     finally:
         if fh is not sys.stdout:
             fh.close()
+
+
+def ternary_switch(primary: object, secondary: object) -> object:
+    """
+    Return primary if not secondary
+
+    :param primary: the first object
+    :param secondary: the second object
+    :return: primary if secondary doesn't exist, else secondary
+    """
+    return primary if not secondary else secondary
