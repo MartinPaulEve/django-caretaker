@@ -101,7 +101,7 @@ class TestCreateBackendDjangoS3(AbstractDjangoS3Test):
                              check_identical=False, backup_local_file='')
         frontend.run_backup(backend=backend, raise_on_error=False,
                             bucket_name='', data_file='', archive_file='',
-                            path_list=[], output_directory='')
+                            path_list=[])
         frontend.export_sql()
 
         with self.assertRaises(FrontendNotFoundError):
