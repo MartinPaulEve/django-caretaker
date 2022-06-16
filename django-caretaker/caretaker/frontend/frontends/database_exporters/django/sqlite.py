@@ -65,13 +65,15 @@ class SQLiteDatabaseExporter(AbstractDatabaseExporter):
 
     def export_sql(self, connection: BaseDatabaseWrapper,
                    alternative_binary: str = '',
-                   alternative_args: list | None = None) -> TextIO | BinaryIO:
+                   alternative_args: list | None = None,
+                   output_file: str = '-') -> TextIO | BinaryIO:
         """
         Export SQL from the database using the specific provider
 
         :param connection: the connection object
         :param alternative_binary: the alternative binary to use
         :param alternative_args: a different set of cmdline args to pass
+        :param output_file: an output file to write to rather than stdout
         :return: a string of the database to output
         """
         binary_name = self._binary_name \
@@ -88,7 +90,7 @@ class SQLiteDatabaseExporter(AbstractDatabaseExporter):
                                                      bufsize=8192, shell=False)
 
         reader = BufferedProcessReader(process)
-        reader.handle_process()
+        reader.handle_process(output_filename=output_file)
 
         if process.returncode != 0:
             raise subprocess.CalledProcessError(returncode=process.returncode,

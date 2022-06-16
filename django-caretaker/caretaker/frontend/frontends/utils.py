@@ -55,20 +55,28 @@ class BufferedProcessReader:
                 self.proc.poll()
                 reached_end = False
 
-                ready = select.select([self.proc.stdout], [], [], float(1.0))
+                select.select([self.proc.stdout], [], [], float(1.0))
 
-                if self.proc.stdout in ready[0]:
-                    data = self.proc.stdout.read(1024)
-                    if len(data) == 0:  # Read of zero bytes means EOF
-                        reached_end = True
-                    else:
-                        # pass it to the buffer
+                data = self.proc.stdout.read(1024)
+                if len(data) == 0:  # Read of zero bytes means EOF
+                    reached_end = True
+                else:
+                    # pass it to the buffer
+                    if out_file is sys.stdout:
                         out_file.write(data.decode('utf-8'))
-                        out_file.flush()
+                    else:
+                        out_file.write(data)
+                    out_file.flush()
 
 
 @contextlib.contextmanager
 def smart_open(filename: str = None):
+    """
+    Opens a file for binary writing or stdout for text writing
+
+    :param filename: the filename to open or "-" for stdout
+    :return: a file handle or stdout
+    """
     if filename and filename != '-':
         fh = open(filename, 'wb')
     else:

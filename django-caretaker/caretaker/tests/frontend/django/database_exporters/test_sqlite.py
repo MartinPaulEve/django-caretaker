@@ -1,3 +1,6 @@
+import tempfile
+from pathlib import Path
+
 import django
 from django.core.management import CommandError
 from django.db import DEFAULT_DB_ALIAS, connections
@@ -55,10 +58,22 @@ class TestSQLiteDatabaseExporter(AbstractDjangoS3Test):
         # now test with bad args
         with self.assertRaises(CommandError):
             connection.settings_dict['ENGINE'] = 'django.db.backends.sqlite3'
-            print(self.frontend.export_sql(alternative_args='JUNK_COMMAND'))
+            self.frontend.export_sql(alternative_args='JUNK_COMMAND')
+
+        # test downloading to a file
+        with tempfile.TemporaryDirectory() as temporary_directory_name:
+            output_file = 'test.sql'
+            output_filename = Path(temporary_directory_name) / output_file
+
+            self.frontend.export_sql(output_file=str(output_filename))
+
+            self.assertTrue(output_filename.exists())
+
+            with output_filename.open('r') as in_file:
+                output = in_file.read()
+                self.assertIn('COMMIT', output)
 
         # test property works
-
         exporter = SQLiteDatabaseExporter()
         self.assertEqual(exporter.database_exporter_name, 'SQLite')
 
