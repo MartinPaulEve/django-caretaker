@@ -30,12 +30,11 @@ class SQLiteDatabaseImporter(AbstractDatabaseImporter):
         :return: None
         """
 
-        if not input_file.startswith('file:'):
-            self.logger.info('Unlinking {} from the filesystem'.format(
-                input_file))
-            shutil.copy(input_file,
-                        Path(rollback_directory) / self.backup_filename)
-            Path(input_file).unlink()
+        self.logger.info('Unlinking {} from the filesystem'.format(
+            input_file))
+        shutil.copy(input_file,
+                    Path(rollback_directory) / self.backup_filename)
+        Path(input_file).unlink()
 
     def _rollback_hook(self, connection: BaseDatabaseWrapper,
                        input_file: str, sql_file: str,
@@ -50,11 +49,10 @@ class SQLiteDatabaseImporter(AbstractDatabaseImporter):
         :return: None
         """
 
-        if not input_file.startswith('file:'):
-            self.logger.info('Rolling back {} from the backup'.format(
-                input_file))
-            shutil.copy(Path(rollback_directory) / self.backup_filename,
-                        input_file)
+        self.logger.info('Rolling back {} from the backup'.format(
+            input_file))
+        shutil.copy(Path(rollback_directory) / self.backup_filename,
+                    input_file)
 
     _binary_name = 'sqlite3'
     _args = '.read'

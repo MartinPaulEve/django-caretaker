@@ -191,3 +191,5 @@ terraform.rc
 hosts.cfg
 deploy_key.pub
 deploy_key_ed.pub
+
+test.sqlite3

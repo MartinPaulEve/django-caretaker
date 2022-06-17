@@ -5,7 +5,7 @@ from pathlib import Path
 import django
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import DEFAULT_DB_ALIAS, connections
+from django.db import DEFAULT_DB_ALIAS, connections, transaction
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.test import TransactionTestCase
 from django.utils.connection import ConnectionDoesNotExist
@@ -23,8 +23,6 @@ from caretaker.frontend.frontends.database_importers.\
 
 
 class TestImportSQLDjango(TransactionTestCase):
-    databases = {"default", "default_in_memory"}
-
     def setUp(self):
         self.logger: Logger = log.get_logger('import-sql-test')
         self.logger.info('Setup for test SQL import into Django')
@@ -131,20 +129,6 @@ class TestImportSQLDjango(TransactionTestCase):
                 self.frontend.import_file(input_file=str(file_path),
                                           raise_on_error=True, dry_run=False,
                                           alternative_args=['JUNK_COMMAND'])
-
-            # now try an import on an in-memory SQLite database
-            self.frontend.import_file(
-                database='default_in_memory', input_file=str(file_path),
-                raise_on_error=False, dry_run=False
-            )
-
-            with self.assertRaises(CommandError):
-                connection.settings_dict['ENGINE'] = \
-                    'django.db.backends.sqlite3'
-                self.frontend.import_file(input_file=str(file_path),
-                                          raise_on_error=True, dry_run=False,
-                                          alternative_binary='sqlite2000',
-                                          database='default_in_memory')
 
             # test property works
             importer = SQLiteDatabaseImporter()
