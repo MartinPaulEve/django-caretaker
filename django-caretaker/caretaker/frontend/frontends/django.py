@@ -9,9 +9,11 @@ from typing.io import BinaryIO
 
 from botocore.exceptions import ClientError
 from django.conf import settings
+from django.core.cache import cache
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.db import DEFAULT_DB_ALIAS, connections, transaction
+from django.db import DEFAULT_DB_ALIAS, connections, transaction, \
+    close_old_connections
 from django.db.backends.base.base import BaseDatabaseWrapper
 
 import caretaker.frontend.frontends.utils as frontend_utils
@@ -23,6 +25,8 @@ from caretaker.frontend.frontends.database_exporters. \
 from caretaker.utils import log, file
 from caretaker.utils.zip import create_zip_file
 from caretaker.utils.file import FileType
+from caretaker.frontend.frontends.database_importers.\
+    abstract_database_importer import AbstractDatabaseImporter
 
 
 def get_frontend():
@@ -30,6 +34,25 @@ def get_frontend():
 
 
 class DjangoFrontend(AbstractFrontend):
+    @staticmethod
+    def reload_database(database: str = '') -> None:
+        """
+        Reload the database
+        """
+        logger = log.get_logger('cache-clear')
+        database: str = database if database else DEFAULT_DB_ALIAS
+
+        connection: BaseDatabaseWrapper | AbstractDatabaseExporter \
+            = connections[database]
+
+        connection.close()
+        connection.connect()
+        close_old_connections()
+
+        cache.clear()
+
+        logger.info('Cleared database cache')
+
     @staticmethod
     def export_sql(database: str = '', alternative_binary: str = '',
                    alternative_args: list | None = None,
@@ -50,7 +73,7 @@ class DjangoFrontend(AbstractFrontend):
             = connections[database]
 
         # load the database patch plugins
-        patched, exporter = frontend_utils.DatabasePatcher.patch(connection)
+        patched, exporter = frontend_utils.DatabasePatcher.patch_exporter(connection)
 
         if patched:
             try:
@@ -169,7 +192,7 @@ class DjangoFrontend(AbstractFrontend):
             if not sql_mode:
                 # setup redirect so that we can pipe the output of dump data to
                 # our output file
-                DjangoFrontend.dump_json(data_file, logger, output_directory)
+                DjangoFrontend.export_json(data_file, logger, output_directory)
             else:
                 DjangoFrontend.export_sql(
                     database='', alternative_binary='', alternative_args=[],
@@ -216,7 +239,7 @@ class DjangoFrontend(AbstractFrontend):
             return output_directory / data_file, zip_file
 
     @staticmethod
-    def dump_json(data_file, logger, output_directory) -> StringIO:
+    def export_json(data_file, logger, output_directory) -> StringIO:
         """
         Dump JSON using the dumpdata command
 
@@ -424,7 +447,54 @@ class DjangoFrontend(AbstractFrontend):
 
         # handle SQL files
         elif file_type == FileType.SQL:
-            raise NotImplementedError
+            connection: BaseDatabaseWrapper | AbstractDatabaseImporter \
+                = connections[database]
+
+            # load the database patch plugins
+            patched, exporter = \
+                frontend_utils.DatabasePatcher.patch_importer(connection)
+
+            if patched:
+                try:
+                    # it looks paradoxical that we are passing in the connection
+                    # here but because of the way the patching works, it needs
+                    # itself as a parameter
+                    if not dry_run:
+                        connection.import_sql(
+                            connection=connection,
+                            alternative_binary=alternative_binary,
+                            alternative_args=alternative_args,
+                            input_file=str(input_file)
+                        )
+                    else:
+                        logger.info('Operating in dry run mode. '
+                                    'No command run.')
+
+                    return True
+                except FileNotFoundError as fe:
+                    # Note that we're assuming the FileNotFoundError relates
+                    # to the command missing. It could be raised for some other
+                    # reason, in which case this error message would be
+                    # inaccurate. Still, this message catches the common case.
+                    binary_name = exporter.binary_file \
+                        if not alternative_binary else alternative_binary
+                    raise CommandError(
+                        "You appear not to have the %r program installed or "
+                        "on your path or we could not write to the output "
+                        "filename."
+                        % binary_name
+                    )
+                except subprocess.CalledProcessError as e:
+                    raise CommandError(
+                        '"%s" returned non-zero exit status %s.'
+                        % (
+                            e.cmd,
+                            e.returncode,
+                        ),
+                        returncode=e.returncode,
+                    )
+            else:
+                raise DatabaseExporterNotFoundError
 
         # handle media ZIP files
         else:

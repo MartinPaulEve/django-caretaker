@@ -15,7 +15,14 @@ def get_frontend():
 
 class MockFrontend(AbstractFrontend):
     @staticmethod
-    def dump_json(data_file, logger, output_directory) -> io.StringIO:
+    def reload_database(database: str = '') -> None:
+        """
+        Reload the database
+        """
+        pass
+
+    @staticmethod
+    def export_json(data_file, logger, output_directory) -> io.StringIO:
         """
         Dump JSON using the dumpdata command
 

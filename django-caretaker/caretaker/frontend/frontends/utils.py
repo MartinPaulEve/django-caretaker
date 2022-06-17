@@ -9,7 +9,7 @@ from django.db.backends.base.base import BaseDatabaseWrapper
 
 class DatabasePatcher:
     @staticmethod
-    def patch(database: BaseDatabaseWrapper) -> (bool, object):
+    def patch_exporter(database: BaseDatabaseWrapper) -> (bool, object):
         module_dict = {
             'caretaker.frontend.frontends.database_exporters.django.sqlite':
                 'SQLiteDatabaseExporter',
@@ -17,6 +17,25 @@ class DatabasePatcher:
                 'PostgresDatabaseExporter',
             'caretaker.frontend.frontends.database_exporters.django.mysql':
                 'MysqlDatabaseExporter',
+        }
+
+        for module_name, class_name in module_dict.items():
+            # load the modules to see if we find a match
+            module = importlib.import_module(module_name)
+            class_ref = getattr(module, class_name)
+            patcher = class_ref()
+
+            # patch the underlying module
+            if patcher.patch(database):
+                return True, patcher
+
+        return False, None
+
+    @staticmethod
+    def patch_importer(database: BaseDatabaseWrapper) -> (bool, object):
+        module_dict = {
+            'caretaker.frontend.frontends.database_importers.django.sqlite':
+                'SQLiteDatabaseImporter',
         }
 
         for module_name, class_name in module_dict.items():

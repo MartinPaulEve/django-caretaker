@@ -5,28 +5,26 @@ from pathlib import Path
 import django
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
-from django.test import TestCase
-from moto import mock_s3
+from django.test import TransactionTestCase
 
-from caretaker.utils import log
 from caretaker.frontend.abstract_frontend import FrontendFactory, \
     AbstractFrontend
+from caretaker.utils import log
 
 
-@mock_s3
-class TestImportJSONDjango(TestCase):
+class TestImportSQLDjango(TransactionTestCase):
     def setUp(self):
-        self.logger: Logger = log.get_logger('import-json-test')
-        self.logger.info('Setup for test JSON import into Django')
+        self.logger: Logger = log.get_logger('import-sql-test')
+        self.logger.info('Setup for test SQL import into Django')
         self.frontend: AbstractFrontend = FrontendFactory.get_frontend('Django')
         django.setup()
 
     def tearDown(self):
-        self.logger.info('Teardown for test JSON import into Django')
+        self.logger.info('Teardown for test SQL import into Django')
         pass
 
     def test(self):
-        self.logger.info('Testing test JSON import into Django')
+        self.logger.info('Testing test SQL import into Django')
 
         # first, insert something into the database
         username: str = 'test_user'
@@ -39,14 +37,10 @@ class TestImportJSONDjango(TestCase):
 
         # dump a JSON backup into the temporary directory
         with tempfile.TemporaryDirectory() as temporary_directory_name:
-            filename: str = 'data.json'
+            filename: str = 'data.sql'
             file_path: Path = Path(temporary_directory_name) / filename
 
-            self.frontend.export_json(
-                data_file=filename,
-                output_directory=temporary_directory_name,
-                logger=self.logger
-            )
+            self.frontend.export_sql(output_file=str(file_path))
 
             self.assertTrue(file_path.exists())
 
@@ -65,9 +59,6 @@ class TestImportJSONDjango(TestCase):
                 raise_on_error=False, dry_run=True
             )
 
-            # note: we don't need to do any database reloading when importing
-            # with JSON as transactions are not atomic
-
             with self.assertRaises(ObjectDoesNotExist):
                 User.objects.get(username=username)
 
@@ -76,6 +67,8 @@ class TestImportJSONDjango(TestCase):
                 database='', input_file=str(file_path),
                 raise_on_error=False, dry_run=False
             )
+
+            self.frontend.reload_database(database='')
 
             # now this should not raise an error
             user: User = User.objects.get(username=username)

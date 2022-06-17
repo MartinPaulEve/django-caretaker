@@ -47,6 +47,14 @@ class AbstractFrontend(metaclass=abc.ABCMeta):
 
     @staticmethod
     @abc.abstractmethod
+    def reload_database(database: str = '') -> None:
+        """
+        Reload the database
+        """
+        pass
+
+    @staticmethod
+    @abc.abstractmethod
     def import_file(database: str = '', alternative_binary: str = '',
                     alternative_args: list | None = None,
                     input_file: str = '-',
@@ -67,7 +75,7 @@ class AbstractFrontend(metaclass=abc.ABCMeta):
 
     @staticmethod
     @abc.abstractmethod
-    def dump_json(data_file, logger, output_directory) -> io.StringIO:
+    def export_json(data_file, logger, output_directory) -> io.StringIO:
         """
         Dump JSON using the dumpdata command
 
