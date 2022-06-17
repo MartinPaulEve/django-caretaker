@@ -18,8 +18,13 @@ from caretaker.frontend.frontends.database_importers.\
     AbstractDatabaseImporter
 from django.core.management.base import CommandError
 
+from caretaker.frontend.frontends.database_importers.\
+    django.sqlite import SQLiteDatabaseImporter
+
 
 class TestImportSQLDjango(TransactionTestCase):
+    databases = {"default", "default_in_memory"}
+
     def setUp(self):
         self.logger: Logger = log.get_logger('import-sql-test')
         self.logger.info('Setup for test SQL import into Django')
@@ -75,8 +80,6 @@ class TestImportSQLDjango(TransactionTestCase):
                 raise_on_error=False, dry_run=False
             )
 
-            self.frontend.reload_database(database='')
-
             # now this should not raise an error
             user: User = User.objects.get(username=username)
             self.assertEqual(user.username, username)
@@ -129,4 +132,23 @@ class TestImportSQLDjango(TransactionTestCase):
                                           raise_on_error=True, dry_run=False,
                                           alternative_args=['JUNK_COMMAND'])
 
-            self.frontend.reload_database(database='')
+            # now try an import on an in-memory SQLite database
+            self.frontend.import_file(
+                database='default_in_memory', input_file=str(file_path),
+                raise_on_error=False, dry_run=False
+            )
+
+            with self.assertRaises(CommandError):
+                connection.settings_dict['ENGINE'] = \
+                    'django.db.backends.sqlite3'
+                self.frontend.import_file(input_file=str(file_path),
+                                          raise_on_error=True, dry_run=False,
+                                          alternative_binary='sqlite2000',
+                                          database='default_in_memory')
+
+            # test property works
+            importer = SQLiteDatabaseImporter()
+            self.assertEqual(importer.database_importer_name, 'SQLite')
+
+            importer.binary_file = 'new_binary'
+            self.assertEqual(importer.binary_file, 'new_binary')

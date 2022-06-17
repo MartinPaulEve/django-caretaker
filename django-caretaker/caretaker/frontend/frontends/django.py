@@ -465,6 +465,9 @@ class DjangoFrontend(AbstractFrontend):
                             alternative_args=alternative_args,
                             input_file=str(input_file)
                         )
+
+                        # reload the database
+                        DjangoFrontend.reload_database(database=database)
                     else:
                         logger.info('Operating in dry run mode. '
                                     'No command run.')
@@ -475,6 +478,7 @@ class DjangoFrontend(AbstractFrontend):
                     # to the command missing. It could be raised for some other
                     # reason, in which case this error message would be
                     # inaccurate. Still, this message catches the common case.
+                    DjangoFrontend.reload_database(database=database)
                     binary_name = exporter.binary_file \
                         if not alternative_binary else alternative_binary
                     raise CommandError(
@@ -484,6 +488,7 @@ class DjangoFrontend(AbstractFrontend):
                         % binary_name
                     )
                 except subprocess.CalledProcessError as e:
+                    DjangoFrontend.reload_database(database=database)
                     raise CommandError(
                         '"%s" returned non-zero exit status %s.'
                         % (
