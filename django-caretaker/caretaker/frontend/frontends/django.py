@@ -9,6 +9,7 @@ from typing.io import BinaryIO
 
 from botocore.exceptions import ClientError
 from django.conf import settings
+from django.core.cache import cache
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.db import DEFAULT_DB_ALIAS, connections, transaction
@@ -22,6 +23,10 @@ from caretaker.frontend.frontends.database_exporters. \
     AbstractDatabaseExporter
 from caretaker.utils import log, file
 from caretaker.utils.zip import create_zip_file
+from caretaker.utils.file import FileType
+from caretaker.frontend.frontends.database_importers. \
+    abstract_database_importer import AbstractDatabaseImporter, \
+    DatabaseImporterNotFoundError
 
 
 def get_frontend():
@@ -29,6 +34,24 @@ def get_frontend():
 
 
 class DjangoFrontend(AbstractFrontend):
+    @staticmethod
+    def reload_database(database: str = '') -> None:
+        """
+        Reload the database
+        """
+        logger = log.get_logger('cache-clear')
+        database: str = database if database else DEFAULT_DB_ALIAS
+
+        connection: BaseDatabaseWrapper | AbstractDatabaseExporter \
+            = connections[database]
+
+        connection.close()
+        connection.connect()
+
+        cache.clear()
+
+        logger.info('Cleared database cache')
+
     @staticmethod
     def export_sql(database: str = '', alternative_binary: str = '',
                    alternative_args: list | None = None,
@@ -49,7 +72,7 @@ class DjangoFrontend(AbstractFrontend):
             = connections[database]
 
         # load the database patch plugins
-        patched, exporter = frontend_utils.DatabasePatcher.patch(connection)
+        patched, exporter = frontend_utils.DatabasePatcher.patch_exporter(connection)
 
         if patched:
             try:
@@ -110,7 +133,7 @@ class DjangoFrontend(AbstractFrontend):
     def __init__(self, logger: logging.Logger | None = None):
         super().__init__(logger)
 
-        self.logger = log.get_logger('caretaker-django')
+        self.logger = log.get_logger('django')
 
     @property
     def frontend_name(self) -> str:
@@ -148,7 +171,7 @@ class DjangoFrontend(AbstractFrontend):
         database = database if database else DEFAULT_DB_ALIAS
 
         with transaction.atomic(using=database):
-            logger = log.get_logger('caretaker-django')
+            logger = log.get_logger('django')
 
             if not output_directory:
                 logger.error('No output directory specified')
@@ -168,13 +191,7 @@ class DjangoFrontend(AbstractFrontend):
             if not sql_mode:
                 # setup redirect so that we can pipe the output of dump data to
                 # our output file
-                buffer = StringIO()
-                call_command('dumpdata', stdout=buffer)
-                buffer.seek(0)
-
-                with (output_directory / data_file).open('w') as out_file:
-                    out_file.write(buffer.read())
-                    logger.info('Wrote {}'.format(data_file))
+                DjangoFrontend.export_json(data_file, logger, output_directory)
             else:
                 DjangoFrontend.export_sql(
                     database='', alternative_binary='', alternative_args=[],
@@ -221,6 +238,26 @@ class DjangoFrontend(AbstractFrontend):
             return output_directory / data_file, zip_file
 
     @staticmethod
+    def export_json(data_file, logger, output_directory) -> StringIO:
+        """
+        Dump JSON using the dumpdata command
+
+        :param data_file: the data file to deposit to
+        :param logger: the logger object
+        :param output_directory: the output directory
+        :return:
+        """
+        buffer = StringIO()
+        call_command('dumpdata', stdout=buffer)
+        buffer.seek(0)
+
+        with (Path(output_directory) / data_file).open('w') as out_file:
+            out_file.write(buffer.read())
+            logger.info('Wrote {}'.format(data_file))
+
+        return buffer
+
+    @staticmethod
     def generate_terraform(output_directory: str,
                            backend: AbstractBackend) -> Path | None:
         """
@@ -230,7 +267,7 @@ class DjangoFrontend(AbstractFrontend):
         :param backend: the backend to use
         :return: a path indicating where the Terraform files reside
         """
-        logger = log.get_logger('caretaker')
+        logger = log.get_logger('')
         output_directory = file.normalize_path(output_directory)
 
         for filename in backend.terraform_files:
@@ -280,7 +317,7 @@ class DjangoFrontend(AbstractFrontend):
         :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a pathlib.Path object pointing to the downloaded file or None
         """
-        logger = log.get_logger('caretaker')
+        logger = log.get_logger('')
 
         out_file = file.normalize_path(out_file)
 
@@ -324,7 +361,7 @@ class DjangoFrontend(AbstractFrontend):
         :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a StoreOutcome
         """
-        logger = log.get_logger('caretaker')
+        logger = log.get_logger('')
 
         backup_local_file = file.normalize_path(backup_local_file)
 
@@ -343,6 +380,129 @@ class DjangoFrontend(AbstractFrontend):
         else:
             logger.info('Last version was identical.')
             return result
+
+    @staticmethod
+    def import_file(database: str = DEFAULT_DB_ALIAS,
+                    alternative_binary: str = '',
+                    alternative_args: list | None = None,
+                    input_file: str = '-',
+                    raise_on_error: bool = False,
+                    dry_run: bool = False) -> bool:
+        """
+        Import a file into the database
+
+        :param database: the database to export
+        :param alternative_binary: a different binary file to run
+        :param alternative_args: a different set of cmdline args to pass
+        :param input_file: an input file to import
+        :param raise_on_error: whether to raise exceptions or log them
+        :param dry_run: if True, will not commit to the database
+        :return: a string of the database output
+        """
+        logger = log.get_logger('import-file')
+        database = database if database else DEFAULT_DB_ALIAS
+        input_file = file.normalize_path(input_file)
+
+        # check the file exists
+        if not input_file.exists():
+            logger.error('Input file {} does not exist'.format(input_file))
+
+            if raise_on_error:
+                raise FileNotFoundError
+
+        # determine the type of file
+        file_type = file.determine_type(input_file)
+
+        # handle UNKNOWN file type
+        if file_type == FileType.UNKNOWN:
+            logger.error('Unable to determine input type of {}'.format(
+                input_file))
+            if raise_on_error:
+                raise FrontendError
+            else:
+                return False
+
+        # handle JSON file type
+        elif file_type == FileType.JSON:
+            logger.info('File {} appears to be a JSON dump'.format(input_file))
+            with transaction.atomic(using=database):
+                buffer = StringIO()
+                logger.info(
+                    'Calling: loaddata --database {} {}'.format(
+                        database, input_file))
+
+                if not dry_run:
+                    call_command('loaddata', '--database', database,
+                                 str(input_file), stdout=buffer)
+
+                buffer.seek(0)
+                logger.info('Loaded {} into the database using '
+                            'loaddata'.format(input_file))
+
+                if not dry_run:
+                    logger.info(buffer.read())
+
+                return True
+
+        # handle SQL files
+        elif file_type == FileType.SQL:
+            connection: BaseDatabaseWrapper | AbstractDatabaseImporter \
+                = connections[database]
+
+            # load the database patch plugins
+            patched, exporter = \
+                frontend_utils.DatabasePatcher.patch_importer(connection)
+
+            if patched:
+                try:
+                    # it looks paradoxical that we are passing in the connection
+                    # here but because of the way the patching works, it needs
+                    # itself as a parameter
+                    if not dry_run:
+                        connection.import_sql(
+                            connection=connection,
+                            alternative_binary=alternative_binary,
+                            alternative_args=alternative_args,
+                            input_file=str(input_file)
+                        )
+
+                        # reload the database
+                        DjangoFrontend.reload_database(database=database)
+                    else:
+                        logger.info('Operating in dry run mode. '
+                                    'No command run.')
+
+                    return True
+                except FileNotFoundError:
+                    # Note that we're assuming the FileNotFoundError relates
+                    # to the command missing. It could be raised for some other
+                    # reason, in which case this error message would be
+                    # inaccurate. Still, this message catches the common case.
+                    DjangoFrontend.reload_database(database=database)
+                    binary_name = exporter.binary_file \
+                        if not alternative_binary else alternative_binary
+                    raise CommandError(
+                        "You appear not to have the %r program installed or "
+                        "on your path or we could not write to the output "
+                        "filename."
+                        % binary_name
+                    )
+                except subprocess.CalledProcessError as e:
+                    DjangoFrontend.reload_database(database=database)
+                    raise CommandError(
+                        '"%s" returned non-zero exit status %s.'
+                        % (
+                            e.cmd,
+                            e.returncode,
+                        ),
+                        returncode=e.returncode,
+                    )
+            else:
+                raise DatabaseImporterNotFoundError
+
+        # handle media ZIP files
+        else:
+            raise NotImplementedError
 
     @staticmethod
     def run_backup(data_file: str = 'data.json',
@@ -371,7 +531,7 @@ class DjangoFrontend(AbstractFrontend):
         :param alternative_binary: alternative export binary to use in SQL mode
         :return: 2-tuple of pathlib.Path objects to the data file & archive file
         """
-        logger = log.get_logger('caretaker-django')
+        logger = log.get_logger('django')
 
         path_list = path_list if path_list else []
 

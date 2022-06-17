@@ -19,7 +19,7 @@ def command(output_directory: str, backend_name: str, frontend_name: str) \
     """
     Output terraform files to the specified OUTPUT-DIRECTORY
     """
-    logger = log.get_logger('caretaker')
+    logger = log.get_logger('')
 
     try:
         frontend, backend = FrontendFactory.get_frontend_and_backend(

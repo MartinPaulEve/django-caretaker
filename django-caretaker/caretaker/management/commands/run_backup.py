@@ -47,7 +47,7 @@ def command(additional_files: tuple, backend_name: str,
     database = database if database else DEFAULT_DB_ALIAS
 
     with transaction.atomic(using=database):
-        logger = log.get_logger('caretaker')
+        logger = log.get_logger('')
 
         try:
             frontend, backend = FrontendFactory.get_frontend_and_backend(

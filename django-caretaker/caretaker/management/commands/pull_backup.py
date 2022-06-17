@@ -23,7 +23,7 @@ def command(remote_key: str, local_file: str, backup_version: str,
     """
     Saves BACKUP-VERSION of REMOTE-KEY into LOCAL-FILE
     """
-    logger = log.get_logger('caretaker')
+    logger = log.get_logger('')
 
     try:
         frontend, backend = FrontendFactory.get_frontend_and_backend(

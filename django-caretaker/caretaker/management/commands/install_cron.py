@@ -62,7 +62,7 @@ def _install_cron(job_name: str, base_dir: str, tab: CronTab,
     :param tab: the crontab to use
     :return:
     """
-    logger = log.get_logger('caretaker-cron')
+    logger = log.get_logger('cron')
 
     jobs = [
         {

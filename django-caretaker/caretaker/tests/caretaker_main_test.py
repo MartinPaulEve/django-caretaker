@@ -25,4 +25,4 @@ class AbstractCaretakerTest(TestCase, metaclass=abc.ABCMeta):
         super().__init__(methodName=method_name)
         self.logger = logger
 
-        self.logger = log.get_logger('caretaker')
+        self.logger = log.get_logger('')

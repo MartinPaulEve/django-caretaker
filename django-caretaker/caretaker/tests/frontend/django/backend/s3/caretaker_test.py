@@ -41,7 +41,7 @@ class AbstractDjangoS3Test(AbstractCaretakerTest, metaclass=abc.ABCMeta):
         self.data_key = 'media.zip'
         self.test_contents = 'test'
 
-        self.logger = log.get_logger('caretaker')
+        self.logger = log.get_logger('')
 
     def create_bucket(self):
         """

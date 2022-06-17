@@ -17,11 +17,11 @@ class LoggerDefaultTestCase(TestCase):
         logger.error("an error")
         logger.critical("a critical error")
         captures.check(
-            ("root", "DEBUG", "a noise"),
-            ("root", "INFO", "a message"),
-            ("root", "WARNING", "a warning"),
-            ("root", "ERROR", "an error"),
-            ("root", "CRITICAL", "a critical error"),
+            ("django-caretaker-root", "DEBUG", "a noise"),
+            ("django-caretaker-root", "INFO", "a message"),
+            ("django-caretaker-root", "WARNING", "a warning"),
+            ("django-caretaker-root", "ERROR", "an error"),
+            ("django-caretaker-root", "CRITICAL", "a critical error"),
         )
 
     @log_capture()
@@ -33,23 +33,8 @@ class LoggerDefaultTestCase(TestCase):
         logger.error("an error")
         logger.critical("a critical error")
         captures.check(
-            ("django", "INFO", "a message"),
-            ("django", "WARNING", "a warning"),
-            ("django", "ERROR", "an error"),
-            ("django", "CRITICAL", "a critical error"),
+            ("django-caretaker-django", "INFO", "a message"),
+            ("django-caretaker-django", "WARNING", "a warning"),
+            ("django-caretaker-django", "ERROR", "an error"),
+            ("django-caretaker-django", "CRITICAL", "a critical error"),
             )
-
-    @log_capture()
-    def test_caretaker(self, captures):
-        logger = log.get_logger('caretaker')
-        logger.debug("a noise")
-        logger.info("a message")
-        logger.warning("a warning")
-        logger.error("an error")
-        logger.critical("a critical error")
-        captures.check(
-            ("caretaker", "INFO", "a message"),
-            ("caretaker", "WARNING", "a warning"),
-            ("caretaker", "ERROR", "an error"),
-            ("caretaker", "CRITICAL", "a critical error"),
-        )

@@ -126,7 +126,9 @@ class AbstractDatabaseExporter(metaclass=abc.ABCMeta):
             alternative_args=alternative_args
         )
 
-        process: subprocess.Popen = subprocess.Popen(args,
+        final_args = [str(arg) for arg in args]
+
+        process: subprocess.Popen = subprocess.Popen(final_args,
                                                      env=env,
                                                      stdout=subprocess.PIPE,
                                                      bufsize=8192, shell=False)
@@ -136,7 +138,7 @@ class AbstractDatabaseExporter(metaclass=abc.ABCMeta):
 
         if process.returncode != 0:
             raise subprocess.CalledProcessError(returncode=process.returncode,
-                                                cmd=' '.join(args),
+                                                cmd=' '.join(final_args),
                                                 output='Output not available')
 
         return sys.stdout if output_file == '-' else output_file

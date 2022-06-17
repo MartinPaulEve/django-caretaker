@@ -17,7 +17,7 @@ def get_logger(namespace: str = 'root', level: int = logging.INFO) \
         datefmt="[%X]", handlers=[RichHandler()]
     )
 
-    logger = logging.getLogger(namespace)
+    logger = logging.getLogger('django-caretaker-{}'.format(namespace))
     logger.setLevel(level)
 
     return logger
