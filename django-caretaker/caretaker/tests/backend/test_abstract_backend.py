@@ -17,7 +17,7 @@ class AbstractBackendTest(AbstractCaretakerTest, metaclass=abc.ABCMeta):
     def __init__(self, logger: logging.Logger | None = None):
         super().__init__(logger=logger, method_name='test')
 
-        self.logger = log.get_logger('caretaker')
+        self.logger = log.get_logger('')
 
     def setUp(self):
         self.logger.info('Setup for abstract backend test')

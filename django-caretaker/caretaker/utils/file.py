@@ -1,4 +1,6 @@
 import importlib.resources as pkg_resources
+import zipfile
+from enum import Enum
 from pathlib import Path
 from typing import TextIO
 
@@ -50,3 +52,34 @@ def output_terraform_file(output_directory: Path, terraform_file: TextIO,
             out_file.write(rendered)
 
         return output_file
+
+
+class FileType(Enum):
+    """
+    An enum of file types
+    """
+    SQL = 0
+    JSON = 1
+    ARCHIVE = 2
+    UNKNOWN = 3
+
+
+def determine_type(input_file: Path) -> FileType:
+    """
+    Determine the file type
+
+    :param input_file: the input file to check
+    :return: a FileType enum
+    """
+    try:
+        if zipfile.is_zipfile(input_file):
+            return FileType.ARCHIVE
+        else:
+            with input_file.open('r') as in_file:
+                first_character = in_file.read(1)
+                if first_character == '[':
+                    return FileType.JSON
+                else:
+                    return FileType.SQL
+    except OSError:
+        return FileType.UNKNOWN

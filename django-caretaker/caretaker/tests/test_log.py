@@ -41,7 +41,7 @@ class LoggerDefaultTestCase(TestCase):
 
     @log_capture()
     def test_caretaker(self, captures):
-        logger = log.get_logger('caretaker')
+        logger = log.get_logger('')
         logger.debug("a noise")
         logger.info("a message")
         logger.warning("a warning")

@@ -21,7 +21,7 @@ def command(remote_key: str, local_file: str, backend_name: str,
     """
     Pushes LOCAL-FILE to the latest version of REMOTE-KEY
     """
-    logger = log.get_logger('caretaker')
+    logger = log.get_logger('')
 
     try:
         frontend, backend = FrontendFactory.get_frontend_and_backend(

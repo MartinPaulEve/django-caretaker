@@ -21,7 +21,7 @@ def command(remote_key: str, backend_name: str, frontend_name: str) \
     """
     Lists remote versions of REMOTE-KEY (a filename)
     """
-    logger = log.get_logger('caretaker')
+    logger = log.get_logger('')
 
     try:
         frontend, backend = FrontendFactory.get_frontend_and_backend(

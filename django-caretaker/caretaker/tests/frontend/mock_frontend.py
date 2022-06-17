@@ -48,7 +48,7 @@ class MockFrontend(AbstractFrontend):
     def __init__(self, logger: logging.Logger | None = None):
         super().__init__(logger)
 
-        self.logger = log.get_logger('caretaker-mock-frontend')
+        self.logger = log.get_logger('mock-frontend')
 
     @property
     def frontend_name(self) -> str:
@@ -144,6 +144,25 @@ class MockFrontend(AbstractFrontend):
         :param check_identical: check whether the file exists in the remote store
         :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a StoreOutcome
+        """
+        pass
+
+    @staticmethod
+    def import_file(database: str = '', alternative_binary: str = '',
+                    alternative_args: list | None = None,
+                    input_file: str = '-',
+                    raise_on_error: bool = False,
+                    dry_run: bool = False) -> bool:
+        """
+        Import a file into the database
+
+        :param database: the database to export
+        :param alternative_binary: a different binary file to run
+        :param alternative_args: a different set of cmdline args to pass
+        :param input_file: an input file to import
+        :param raise_on_error: whether to raise exceptions or log them
+        :param dry_run: if True, will not commit to the database
+        :return: a string of the database output
         """
         pass
 

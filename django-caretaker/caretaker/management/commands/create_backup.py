@@ -44,7 +44,7 @@ def command(output_directory: str, additional_files: tuple,
     database = database if database else DEFAULT_DB_ALIAS
 
     with transaction.atomic(using=database):
-        logger = log.get_logger('caretaker-command')
+        logger = log.get_logger('command')
 
         try:
             frontend = FrontendFactory.get_frontend(frontend_name=frontend_name,

@@ -22,7 +22,7 @@ from caretaker.frontend.frontends.database_exporters. \
     AbstractDatabaseExporter
 from caretaker.utils import log, file
 from caretaker.utils.zip import create_zip_file
-
+from caretaker.utils.file import FileType
 
 def get_frontend():
     return DjangoFrontend()
@@ -110,7 +110,7 @@ class DjangoFrontend(AbstractFrontend):
     def __init__(self, logger: logging.Logger | None = None):
         super().__init__(logger)
 
-        self.logger = log.get_logger('caretaker-django')
+        self.logger = log.get_logger('django')
 
     @property
     def frontend_name(self) -> str:
@@ -148,7 +148,7 @@ class DjangoFrontend(AbstractFrontend):
         database = database if database else DEFAULT_DB_ALIAS
 
         with transaction.atomic(using=database):
-            logger = log.get_logger('caretaker-django')
+            logger = log.get_logger('django')
 
             if not output_directory:
                 logger.error('No output directory specified')
@@ -230,7 +230,7 @@ class DjangoFrontend(AbstractFrontend):
         :param backend: the backend to use
         :return: a path indicating where the Terraform files reside
         """
-        logger = log.get_logger('caretaker')
+        logger = log.get_logger('')
         output_directory = file.normalize_path(output_directory)
 
         for filename in backend.terraform_files:
@@ -280,7 +280,7 @@ class DjangoFrontend(AbstractFrontend):
         :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a pathlib.Path object pointing to the downloaded file or None
         """
-        logger = log.get_logger('caretaker')
+        logger = log.get_logger('')
 
         out_file = file.normalize_path(out_file)
 
@@ -324,7 +324,7 @@ class DjangoFrontend(AbstractFrontend):
         :param raise_on_error: whether to raise underlying exceptions if there is a client error
         :return: a StoreOutcome
         """
-        logger = log.get_logger('caretaker')
+        logger = log.get_logger('')
 
         backup_local_file = file.normalize_path(backup_local_file)
 
@@ -343,6 +343,77 @@ class DjangoFrontend(AbstractFrontend):
         else:
             logger.info('Last version was identical.')
             return result
+
+    @staticmethod
+    def import_file(database: str = DEFAULT_DB_ALIAS,
+                    alternative_binary: str = '',
+                    alternative_args: list | None = None,
+                    input_file: str = '-',
+                    raise_on_error: bool = False,
+                    dry_run: bool = False) -> bool:
+        """
+        Import a file into the database
+
+        :param database: the database to export
+        :param alternative_binary: a different binary file to run
+        :param alternative_args: a different set of cmdline args to pass
+        :param input_file: an input file to import
+        :param raise_on_error: whether to raise exceptions or log them
+        :param dry_run: if True, will not commit to the database
+        :return: a string of the database output
+        """
+        logger = log.get_logger('import-file')
+        database = database if database else DEFAULT_DB_ALIAS
+        input_file = file.normalize_path(input_file)
+
+        # check the file exists
+        if not input_file.exists():
+            logger.error('Input file {} does not exist'.format(input_file))
+
+            if raise_on_error:
+                raise FileNotFoundError
+
+        # determine the type of file
+        file_type = file.determine_type(input_file)
+
+        # handle UNKNOWN file type
+        if file_type == FileType.UNKNOWN:
+            logger.error('Unable to determine input type of {}.'.format(
+                input_file))
+            if raise_on_error:
+                raise FrontendError
+            else:
+                return False
+
+        # handle JSON file type
+        elif file_type == FileType.JSON:
+            logger.info('File {} appears to be a JSON dump.'.format(input_file))
+            with transaction.atomic(using=database):
+                buffer = StringIO()
+                logger.info(
+                    'Calling: loaddata --database {} {}'.format(
+                        database, input_file))
+
+                if not dry_run:
+                    call_command('loaddata', '--database', database,
+                                 str(input_file), stdout=buffer)
+
+                buffer.seek(0)
+                logger.info('Loaded {} into the database using '
+                            'loaddata'.format(input_file))
+
+                if not dry_run:
+                    logger.info(buffer.read())
+
+                return True
+
+        # handle SQL files
+        elif file_type == FileType.SQL:
+            raise NotImplementedError
+
+        # handle media ZIP files
+        else:
+            raise NotImplementedError
 
     @staticmethod
     def run_backup(data_file: str = 'data.json',
@@ -371,7 +442,7 @@ class DjangoFrontend(AbstractFrontend):
         :param alternative_binary: alternative export binary to use in SQL mode
         :return: 2-tuple of pathlib.Path objects to the data file & archive file
         """
-        logger = log.get_logger('caretaker-django')
+        logger = log.get_logger('django')
 
         path_list = path_list if path_list else []
 

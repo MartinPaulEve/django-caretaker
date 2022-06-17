@@ -38,7 +38,7 @@ class MockS3Backend(AbstractBackend):
     def __init__(self, logger: logging.Logger | None = None):
         super().__init__(logger)
 
-        self.logger = log.get_logger('caretaker-amazon-s3')
+        self.logger = log.get_logger('amazon-s3')
 
         self.s3 = boto3.client(
             's3',
