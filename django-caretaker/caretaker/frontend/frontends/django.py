@@ -12,8 +12,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.db import DEFAULT_DB_ALIAS, connections, transaction, \
-    close_old_connections
+from django.db import DEFAULT_DB_ALIAS, connections, transaction
 from django.db.backends.base.base import BaseDatabaseWrapper
 
 import caretaker.frontend.frontends.utils as frontend_utils
@@ -25,8 +24,9 @@ from caretaker.frontend.frontends.database_exporters. \
 from caretaker.utils import log, file
 from caretaker.utils.zip import create_zip_file
 from caretaker.utils.file import FileType
-from caretaker.frontend.frontends.database_importers.\
-    abstract_database_importer import AbstractDatabaseImporter
+from caretaker.frontend.frontends.database_importers. \
+    abstract_database_importer import AbstractDatabaseImporter, \
+    DatabaseImporterNotFoundError
 
 
 def get_frontend():
@@ -47,7 +47,6 @@ class DjangoFrontend(AbstractFrontend):
 
         connection.close()
         connection.connect()
-        close_old_connections()
 
         cache.clear()
 
@@ -471,7 +470,7 @@ class DjangoFrontend(AbstractFrontend):
                                     'No command run.')
 
                     return True
-                except FileNotFoundError as fe:
+                except FileNotFoundError:
                     # Note that we're assuming the FileNotFoundError relates
                     # to the command missing. It could be raised for some other
                     # reason, in which case this error message would be
@@ -494,7 +493,7 @@ class DjangoFrontend(AbstractFrontend):
                         returncode=e.returncode,
                     )
             else:
-                raise DatabaseExporterNotFoundError
+                raise DatabaseImporterNotFoundError
 
         # handle media ZIP files
         else:

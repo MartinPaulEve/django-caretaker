@@ -2,11 +2,13 @@ import abc
 import shutil
 import subprocess
 import sys
+import tempfile
 from logging import Logger
 from pathlib import Path
 from typing import TextIO
 from typing.io import BinaryIO
 
+from django.core.management import CommandError
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.base.client import BaseDatabaseClient
 
@@ -70,7 +72,6 @@ class AbstractDatabaseImporter(metaclass=abc.ABCMeta):
         :return: the final binary
         """
         return str(frontend_utils.ternary_switch(self.binary_file,
-
                                                  alternative_binary))
 
     @property
@@ -116,13 +117,29 @@ class AbstractDatabaseImporter(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def _pre_hook(self, connection: BaseDatabaseWrapper,
-                  input_file: str, sql_file: str) -> None:
+                  input_file: str, sql_file: str,
+                  rollback_directory: str) -> None:
         """
         A pre-hook function to allow individual importers to act
 
         :param connection: the connection object
         :param input_file: the input filename of the SQL
         :param sql_file: the sql file to process
+        :param rollback_directory: a temporary directory to store rollbacks
+        :return: None
+        """
+        pass
+
+    @abc.abstractmethod
+    def _rollback_hook(self, connection: BaseDatabaseWrapper, input_file: str,
+                       sql_file: str, rollback_directory: str) -> None:
+        """
+        A pre-hook function to allow individual importers to act
+
+        :param connection: the connection object
+        :param input_file: the input filename of the SQL
+        :param sql_file: the sql file to process
+        :param rollback_directory: a temporary directory to store rollbacks
         :return: None
         """
         pass
@@ -141,40 +158,51 @@ class AbstractDatabaseImporter(metaclass=abc.ABCMeta):
         """
         logger = log.get_logger('sql-importer')
 
-        self._pre_hook(connection=connection,
-                       input_file=str(connection.settings_dict['NAME']),
-                       sql_file=input_file)
+        with tempfile.TemporaryDirectory() as temporary_directory_name:
+            self._pre_hook(connection=connection,
+                           input_file=str(connection.settings_dict['NAME']),
+                           sql_file=input_file,
+                           rollback_directory=temporary_directory_name)
 
-        if self._args != '':
-            self._args = '{} {}'.format(self._args, input_file)
+            if self._args != '':
+                self._args = '{} {}'.format(self._args, input_file)
 
-        args, env = self.args_and_env(
-            connection=connection, alternative_binary=alternative_binary,
-            alternative_args=alternative_args
-        )
+            args, env = self.args_and_env(
+                connection=connection, alternative_binary=alternative_binary,
+                alternative_args=alternative_args
+            )
 
-        # convert to str in case a PosixPath switch has happened
-        final_args = [str(arg) for arg in args]
+            # convert to str in case a PosixPath switch has happened
+            final_args = [str(arg) for arg in args]
 
-        logger.info('Running: {}'.format(' '.join(final_args)))
-        process: subprocess.Popen = subprocess.Popen(final_args,
-                                                     env=env,
-                                                     stdout=subprocess.PIPE,
-                                                     bufsize=8192, shell=False)
+            logger.info('Running: {}'.format(' '.join(final_args)))
 
-        reader = BufferedProcessReader(process)
-        reader.handle_process(output_filename='-')
+            try:
+                process: subprocess.Popen = subprocess.Popen(
+                    final_args, env=env, stdout=subprocess.PIPE,
+                    bufsize=8192, shell=False)
 
-        if process.returncode != 0:
-            raise subprocess.CalledProcessError(returncode=process.returncode,
-                                                cmd=' '.join(args),
-                                                output='Output not available')
+                reader = BufferedProcessReader(process)
+                reader.handle_process(output_filename='-')
 
-        # verify if the file now exists
-        print('Does {} exist?'.format(connection.settings_dict['NAME']))
-        print(Path(connection.settings_dict['NAME']).exists())
+                if process.returncode != 0:
+                    self._rollback_hook(
+                        connection=connection,
+                        input_file=str(connection.settings_dict['NAME']),
+                        sql_file=input_file,
+                        rollback_directory=temporary_directory_name)
+                    raise subprocess.CalledProcessError(
+                        returncode=process.returncode, cmd=' '.join(final_args),
+                        output='Output not available')
 
-        return sys.stdout
+                return sys.stdout
+            except FileNotFoundError:
+                self._rollback_hook(
+                    connection=connection,
+                    input_file=str(connection.settings_dict['NAME']),
+                    sql_file=input_file,
+                    rollback_directory=temporary_directory_name)
+                raise FileNotFoundError
 
     def patch(self, connection: BaseDatabaseWrapper) -> bool:
         """
@@ -191,8 +219,8 @@ class AbstractDatabaseImporter(metaclass=abc.ABCMeta):
         return False
 
 
-class DatabaseImporterNotFoundError (Exception):
+class DatabaseImporterNotFoundError(Exception):
     """
-    Occurs when a database exporter cannot be found to handle the current engine
+    Occurs when a database importer cannot be found to handle the current engine
     """
     pass

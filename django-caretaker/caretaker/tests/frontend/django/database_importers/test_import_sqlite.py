@@ -5,11 +5,18 @@ from pathlib import Path
 import django
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import DEFAULT_DB_ALIAS, connections
+from django.db.backends.base.base import BaseDatabaseWrapper
 from django.test import TransactionTestCase
+from django.utils.connection import ConnectionDoesNotExist
 
 from caretaker.frontend.abstract_frontend import FrontendFactory, \
     AbstractFrontend
 from caretaker.utils import log
+from caretaker.frontend.frontends.database_importers.\
+    abstract_database_importer import DatabaseImporterNotFoundError, \
+    AbstractDatabaseImporter
+from django.core.management.base import CommandError
 
 
 class TestImportSQLDjango(TransactionTestCase):
@@ -74,19 +81,52 @@ class TestImportSQLDjango(TransactionTestCase):
             user: User = User.objects.get(username=username)
             self.assertEqual(user.username, username)
 
-        # try to import a file that doesn't exist
-        with self.assertLogs(level='ERROR') as log_file:
-            self.frontend.import_file(
-                database='', input_file='/junk',
-                raise_on_error=False, dry_run=False
-            )
+            # try to import a file that doesn't exist
+            with self.assertLogs(level='ERROR') as log_file:
+                self.frontend.import_file(
+                    database='', input_file='/junk',
+                    raise_on_error=False, dry_run=False
+                )
 
-            self.assertIn('does not exist',
-                          ''.join(log_file.output))
+                self.assertIn('does not exist',
+                              ''.join(log_file.output))
 
-        # now check that it throws an exception
-        with self.assertRaises(FileNotFoundError):
-            self.frontend.import_file(
-                database='', input_file='/junk',
-                raise_on_error=True, dry_run=False
-            )
+            # now check that it throws an exception
+            with self.assertRaises(FileNotFoundError):
+                self.frontend.import_file(
+                    database='', input_file='/junk',
+                    raise_on_error=True, dry_run=False
+                )
+
+            # check when we get no database
+            with self.assertRaises(ConnectionDoesNotExist):
+                self.frontend.import_file(database='NON-EXISTENT DATABASE',
+                                          input_file=str(file_path),
+                                          raise_on_error=True, dry_run=True)
+
+            # check when we get a database that we can't understand
+            with self.assertRaises(DatabaseImporterNotFoundError):
+                database: str = DEFAULT_DB_ALIAS
+                connection: BaseDatabaseWrapper | AbstractDatabaseImporter \
+                    = connections[database]
+                connection.settings_dict['ENGINE'] = 'NON-EXISTENT DATABASE'
+                self.frontend.import_file(input_file=str(file_path),
+                                          raise_on_error=True, dry_run=True)
+
+            # switch it back and test for a failed binary call
+            with self.assertRaises(CommandError):
+                connection.settings_dict['ENGINE'] = \
+                    'django.db.backends.sqlite3'
+                self.frontend.import_file(input_file=str(file_path),
+                                          raise_on_error=True, dry_run=False,
+                                          alternative_binary='sqlite2000')
+
+            # now test with bad args
+            with self.assertRaises(CommandError):
+                connection.settings_dict['ENGINE'] = \
+                    'django.db.backends.sqlite3'
+                self.frontend.import_file(input_file=str(file_path),
+                                          raise_on_error=True, dry_run=False,
+                                          alternative_args=['JUNK_COMMAND'])
+
+            self.frontend.reload_database(database='')
