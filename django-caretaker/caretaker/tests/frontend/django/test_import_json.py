@@ -4,6 +4,7 @@ from pathlib import Path
 
 import django
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
 from moto import mock_s3
 
@@ -55,8 +56,8 @@ class TestImportJSONDjango(TestCase):
             user.save()
 
             # assert we can't find it with the original username
-            with self.assertRaises(User.DoesNotExist):
-                user: User = User.objects.get(username=username)
+            with self.assertRaises(ObjectDoesNotExist):
+                User.objects.get(username=username)
 
             # now do the restore with dry run, which should fail
             self.frontend.import_file(
@@ -64,8 +65,8 @@ class TestImportJSONDjango(TestCase):
                 raise_on_error=False, dry_run=True
             )
 
-            with self.assertRaises(User.DoesNotExist):
-                user: User = User.objects.get(username=username)
+            with self.assertRaises(ObjectDoesNotExist):
+                User.objects.get(username=username)
 
             # now do the real restore with dry run, which should fail
             self.frontend.import_file(
@@ -78,14 +79,14 @@ class TestImportJSONDjango(TestCase):
             self.assertEqual(user.username, username)
 
         # try to import a file that doesn't exist
-        with self.assertLogs(level='ERROR') as log:
+        with self.assertLogs(level='ERROR') as log_file:
             self.frontend.import_file(
                 database='', input_file='/junk',
                 raise_on_error=False, dry_run=False
             )
 
             self.assertIn('does not exist',
-                          ''.join(log.output))
+                          ''.join(log_file.output))
 
         # now check that it throws an exception
         with self.assertRaises(FileNotFoundError):
