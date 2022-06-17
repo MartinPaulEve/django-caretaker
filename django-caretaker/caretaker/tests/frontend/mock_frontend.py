@@ -15,6 +15,18 @@ def get_frontend():
 
 class MockFrontend(AbstractFrontend):
     @staticmethod
+    def dump_json(data_file, logger, output_directory) -> io.StringIO:
+        """
+        Dump JSON using the dumpdata command
+
+        :param data_file: the data file to deposit to
+        :param logger: the logger object
+        :param output_directory: the output directory
+        :return:
+        """
+        pass
+
+    @staticmethod
     def export_sql(database: str = '', alternative_binary: str = '',
                    alternative_args: list | None = None,
                    output_file: str = '-') -> str:

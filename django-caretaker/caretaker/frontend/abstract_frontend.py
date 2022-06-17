@@ -67,6 +67,18 @@ class AbstractFrontend(metaclass=abc.ABCMeta):
 
     @staticmethod
     @abc.abstractmethod
+    def dump_json(data_file, logger, output_directory) -> io.StringIO:
+        """
+        Dump JSON using the dumpdata command
+
+        :param data_file: the data file to deposit to
+        :param logger: the logger object
+        :param output_directory: the output directory
+        :return:
+        """
+
+    @staticmethod
+    @abc.abstractmethod
     def create_backup(output_directory: str, data_file: str = 'data.json',
                       archive_file: str = 'media.zip',
                       path_list: list | None = None,

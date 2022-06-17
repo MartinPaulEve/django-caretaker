@@ -24,6 +24,7 @@ from caretaker.utils import log, file
 from caretaker.utils.zip import create_zip_file
 from caretaker.utils.file import FileType
 
+
 def get_frontend():
     return DjangoFrontend()
 
@@ -168,13 +169,7 @@ class DjangoFrontend(AbstractFrontend):
             if not sql_mode:
                 # setup redirect so that we can pipe the output of dump data to
                 # our output file
-                buffer = StringIO()
-                call_command('dumpdata', stdout=buffer)
-                buffer.seek(0)
-
-                with (output_directory / data_file).open('w') as out_file:
-                    out_file.write(buffer.read())
-                    logger.info('Wrote {}'.format(data_file))
+                DjangoFrontend.dump_json(data_file, logger, output_directory)
             else:
                 DjangoFrontend.export_sql(
                     database='', alternative_binary='', alternative_args=[],
@@ -219,6 +214,26 @@ class DjangoFrontend(AbstractFrontend):
             logger.info('Wrote {} ({})'.format(archive_file, zip_file))
 
             return output_directory / data_file, zip_file
+
+    @staticmethod
+    def dump_json(data_file, logger, output_directory) -> StringIO:
+        """
+        Dump JSON using the dumpdata command
+
+        :param data_file: the data file to deposit to
+        :param logger: the logger object
+        :param output_directory: the output directory
+        :return:
+        """
+        buffer = StringIO()
+        call_command('dumpdata', stdout=buffer)
+        buffer.seek(0)
+
+        with (Path(output_directory) / data_file).open('w') as out_file:
+            out_file.write(buffer.read())
+            logger.info('Wrote {}'.format(data_file))
+
+        return buffer
 
     @staticmethod
     def generate_terraform(output_directory: str,
@@ -378,7 +393,7 @@ class DjangoFrontend(AbstractFrontend):
 
         # handle UNKNOWN file type
         if file_type == FileType.UNKNOWN:
-            logger.error('Unable to determine input type of {}.'.format(
+            logger.error('Unable to determine input type of {}'.format(
                 input_file))
             if raise_on_error:
                 raise FrontendError
@@ -387,7 +402,7 @@ class DjangoFrontend(AbstractFrontend):
 
         # handle JSON file type
         elif file_type == FileType.JSON:
-            logger.info('File {} appears to be a JSON dump.'.format(input_file))
+            logger.info('File {} appears to be a JSON dump'.format(input_file))
             with transaction.atomic(using=database):
                 buffer = StringIO()
                 logger.info(

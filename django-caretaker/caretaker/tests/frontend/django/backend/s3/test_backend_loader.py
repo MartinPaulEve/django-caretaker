@@ -103,6 +103,9 @@ class TestCreateBackendDjangoS3(AbstractDjangoS3Test):
                             bucket_name='', data_file='', archive_file='',
                             path_list=[])
         frontend.export_sql()
+        frontend.dump_json(data_file='', logger=self.logger,
+                           output_directory='')
+        frontend.import_file()
 
         with self.assertRaises(FrontendNotFoundError):
             frontend, backend = FrontendFactory.get_frontend_and_backend(
