@@ -69,15 +69,17 @@ jobs:
       - name: ls 2
         run: ls ./django-caretaker/
       - name: Copy README template to new location
-        run: cp ./README.template ./django-caretaker/README.md
+        run: cp ./README.template ./README.md
       - name: Echo new heading to README
-        run: printf '\n## Code Coverage\n' >> ./django-caretaker/README.md
+        run: printf '\n## Test Coverage\n' >> ./README.md
       - name: Cat code coverage
-        run: cat ./django-caretaker/code-coverage-results.md >> ./django-caretaker/README.md
+        run: cat ./django-caretaker/code-coverage-results.md >> ./README.md
+      - name: Duplicate README
+        run: cp ./README.md ./django-caretaker/README.md
       - name: Commit code coverage file
         uses: EndBug/add-and-commit@v8
         with:
-          add: 'code-coverage-results.md ./django-caretaker/README.md'
+          add: 'code-coverage-results.md ./django-caretaker/README.md ./README.md'
           author_name: 'Code Coverage Bot'
           author_email: 'martin@eve.gd'
           committer_name: 'Code Coverage Bot'
