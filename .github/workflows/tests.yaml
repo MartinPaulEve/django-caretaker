@@ -74,22 +74,10 @@ jobs:
         run: printf '\n## Code Coverage\n' >> ./django-caretaker/README.md
       - name: Cat code coverage
         run: cat ./django-caretaker/code-coverage-results.md >> ./django-caretaker/README.md
-      - name: Add Coverage PR Comment
-        uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request'
-        with:
-          recreate: true
-          path: code-coverage-results.md
-      - name: Add README commit
-        uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request'
-        with:
-          recreate: true
-          path: README.md
       - name: Commit code coverage file
         uses: EndBug/add-and-commit@v8
         with:
-          add: 'code-coverage-results.md README.md'
+          add: 'code-coverage-results.md ./django-caretaker/README.md'
           author_name: 'Code Coverage Bot'
           author_email: 'martin@eve.gd'
           committer_name: 'Code Coverage Bot'
