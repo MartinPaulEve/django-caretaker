@@ -69,7 +69,7 @@ jobs:
       - name: ls 2
         run: ls ./django-caretaker/
       - name: Copy README template to new location
-        run: cp ./django-caretaker/README.template ./django-caretaker/README.md
+        run: cp ./README.template ./django-caretaker/README.md
       - name: Echo new heading to README
         run: printf '\n## Code Coverage\n' >> ./django-caretaker/README.md
       - name: Cat code coverage
@@ -80,6 +80,12 @@ jobs:
         with:
           recreate: true
           path: code-coverage-results.md
+      - name: Add README commit
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          recreate: true
+          path: README.md
       - name: Commit code coverage file
         uses: EndBug/add-and-commit@v8
         with:
