@@ -64,6 +64,10 @@ jobs:
           thresholds: '60 80'
       - name: Copy Coverage To Predictable Location
         run: cp code-coverage-results.md ./django-caretaker/
+      - name: ls 1
+        run: ls ./
+      - name: ls 2
+        run: ls ./django-caretaker/
       - name: Copy README template to new location
         run: cp ./django-caretaker/README.template ./django-caretaker/README.md
       - name: Echo new heading to README
