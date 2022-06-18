@@ -89,7 +89,7 @@ jobs:
       - name: Commit code coverage file
         uses: EndBug/add-and-commit@v8
         with:
-          add: 'code-coverage-results.md'
+          add: 'code-coverage-results.md README.md'
           author_name: 'Code Coverage Bot'
           author_email: 'martin@eve.gd'
           committer_name: 'Code Coverage Bot'

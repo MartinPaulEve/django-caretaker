@@ -117,7 +117,7 @@ class AbstractDatabaseImporter(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def _pre_hook(self, connection: BaseDatabaseWrapper,
                   input_file: str, sql_file: str,
-                  rollback_directory: str) -> None:
+                  rollback_directory: str) -> str | None:
         """
         A pre-hook function to allow individual importers to act
 
@@ -125,7 +125,7 @@ class AbstractDatabaseImporter(metaclass=abc.ABCMeta):
         :param input_file: the input filename of the SQL
         :param sql_file: the sql file to process
         :param rollback_directory: a temporary directory to store rollbacks
-        :return: None
+        :return: a string of the modified input file parameter or None
         """
         pass
 
@@ -158,10 +158,15 @@ class AbstractDatabaseImporter(metaclass=abc.ABCMeta):
         logger = log.get_logger('sql-importer')
 
         with tempfile.TemporaryDirectory() as temporary_directory_name:
-            self._pre_hook(connection=connection,
-                           input_file=str(connection.settings_dict['NAME']),
-                           sql_file=input_file,
-                           rollback_directory=temporary_directory_name)
+            new_file = self._pre_hook(
+                connection=connection,
+                input_file=str(connection.settings_dict['NAME']),
+                sql_file=input_file,
+                rollback_directory=temporary_directory_name)
+
+            # if we get a return from the pre_hook, use this as the filename
+            if new_file is not None:
+                input_file = new_file
 
             # this converts our provided arguments to a list
             # the pre_hook shim sometimes does some hacky stuff on this
@@ -181,6 +186,7 @@ class AbstractDatabaseImporter(metaclass=abc.ABCMeta):
             final_args = [str(arg) for arg in args]
 
             logger.info('Running: {}'.format(' '.join(final_args)))
+            print(final_args)
 
             try:
                 process: subprocess.Popen = subprocess.Popen(

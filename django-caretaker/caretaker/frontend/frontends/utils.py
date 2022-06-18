@@ -38,6 +38,8 @@ class DatabasePatcher:
                 'SQLiteDatabaseImporter',
             'caretaker.frontend.frontends.database_importers.django.postgres':
                 'PostgresDatabaseImporter',
+            'caretaker.frontend.frontends.database_importers.django.mysql':
+                'MysqlDatabaseImporter',
         }
 
         for module_name, class_name in module_dict.items():
