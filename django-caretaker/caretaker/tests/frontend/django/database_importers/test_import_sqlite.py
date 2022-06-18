@@ -5,36 +5,35 @@ from pathlib import Path
 import django
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import DEFAULT_DB_ALIAS, connections, transaction
+from django.core.management.base import CommandError
+from django.db import DEFAULT_DB_ALIAS, connections
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.test import TransactionTestCase
 from django.utils.connection import ConnectionDoesNotExist
 
 from caretaker.frontend.abstract_frontend import FrontendFactory, \
     AbstractFrontend
-from caretaker.utils import log
-from caretaker.frontend.frontends.database_importers.\
+from caretaker.frontend.frontends.database_importers. \
     abstract_database_importer import DatabaseImporterNotFoundError, \
     AbstractDatabaseImporter
-from django.core.management.base import CommandError
-
-from caretaker.frontend.frontends.database_importers.\
+from caretaker.frontend.frontends.database_importers. \
     django.sqlite import SQLiteDatabaseImporter
+from caretaker.utils import log
 
 
-class TestImportSQLDjango(TransactionTestCase):
+class TestImportSQLiteDjango(TransactionTestCase):
     def setUp(self):
-        self.logger: Logger = log.get_logger('import-sql-test')
-        self.logger.info('Setup for test SQL import into Django')
+        self.logger: Logger = log.get_logger('import-sqlite-test')
+        self.logger.info('Setup for test SQLlite import into Django')
         self.frontend: AbstractFrontend = FrontendFactory.get_frontend('Django')
         django.setup()
 
     def tearDown(self):
-        self.logger.info('Teardown for test SQL import into Django')
+        self.logger.info('Teardown for test SQLlite import into Django')
         pass
 
     def test(self):
-        self.logger.info('Testing test SQL import into Django')
+        self.logger.info('Testing test SQLlite import into Django')
 
         # first, insert something into the database
         username: str = 'test_user'

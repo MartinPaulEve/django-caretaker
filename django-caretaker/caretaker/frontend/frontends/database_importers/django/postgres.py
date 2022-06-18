@@ -2,17 +2,46 @@ from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.base.client import BaseDatabaseClient
 from django.db.backends.postgresql.client import DatabaseClient
 
-from caretaker.frontend.frontends.database_exporters. \
-    abstract_database_exporter import AbstractDatabaseExporter
+from caretaker.frontend.frontends.database_importers. \
+    abstract_database_importer import AbstractDatabaseImporter
 
 
-class PostgresDatabaseExporter(AbstractDatabaseExporter):
+class PostgresDatabaseImporter(AbstractDatabaseImporter):
     """
-    The SQLite database exporters
+    The Postgres database importer
     """
 
-    _binary_name = 'pg_dump'
-    _args = ''
+    def _pre_hook(self, connection: BaseDatabaseWrapper,
+                  input_file: str, sql_file: str,
+                  rollback_directory: str) -> None:
+        """
+        A pre-hook function to allow individual importers to act
+
+        :param connection: the connection object
+        :param input_file: the input filename of the database (.sqlite)
+        :param sql_file: the sql file to process (.sql)
+        :param rollback_directory: a temporary directory to store rollbacks
+        :return: None
+        """
+        pass
+
+    def _rollback_hook(self, connection: BaseDatabaseWrapper,
+                       input_file: str, sql_file: str,
+                       rollback_directory: str) -> None:
+        """
+        A rollback hook to recover the database if possible
+
+        :param connection: the connection object
+        :param input_file: the input filename of the database (.sqlite3)
+        :param sql_file: the SQL file to process (.sql)
+        :param rollback_directory: a temporary directory to store rollbacks
+        :return: None
+        """
+        # sorry, but by this point in postgres there's no easy rollback
+        pass
+
+    _binary_name = 'psql'
+    _args = '-f'
 
     @property
     def binary_file(self) -> str:
@@ -33,13 +62,13 @@ class PostgresDatabaseExporter(AbstractDatabaseExporter):
         self._binary_name = value
 
     @property
-    def database_exporter_name(self) -> str:
+    def database_importer_name(self) -> str:
         """
-        The display name of the database exporter
+        The display name of the database importer
 
-        :return: a string of the exporter name
+        :return: a string of the importer name
         """
-        return 'Postgresql'
+        return 'Postgres'
 
     @property
     def handles(self) -> str:

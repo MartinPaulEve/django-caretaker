@@ -120,7 +120,7 @@ Reload the database:
 SQL export is not available for Oracle. It's a nightmare to get Oracle tools installed on our testing systems. Hence, Oracle systems will have to use the old dumpdata methods.
 
 ## SQLite support
-We do not support in-memory SQLite databases for import_sql operations. It's not possible to destroy and reload the in-memory database through Django, which is what we do with the on-disk equivalent.
+We do not support in-memory SQLite databases for import_file operations. It's not possible to destroy and reload the in-memory database through Django, which is what we do with the on-disk equivalent.
 
 ## Credits
 * [A context manager for files or stdout](https://stackoverflow.com/a/17603000/349003) by Wolph.

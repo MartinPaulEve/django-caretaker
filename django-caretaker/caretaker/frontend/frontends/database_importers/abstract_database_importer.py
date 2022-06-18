@@ -1,14 +1,11 @@
 import abc
-import shutil
 import subprocess
 import sys
 import tempfile
 from logging import Logger
-from pathlib import Path
 from typing import TextIO
 from typing.io import BinaryIO
 
-from django.core.management import CommandError
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.base.client import BaseDatabaseClient
 
@@ -75,7 +72,7 @@ class AbstractDatabaseImporter(metaclass=abc.ABCMeta):
                                                  alternative_binary))
 
     @property
-    def provided_args(self) -> str:
+    def provided_args(self) -> list:
         """
         The arguments provided by this implementation
 
@@ -106,14 +103,16 @@ class AbstractDatabaseImporter(metaclass=abc.ABCMeta):
         :param alternative_args: a different set of cmdline args to pass
         :return: 2-tuple of array of arguments and dict of environment variables
         """
-        return utils.delegate_settings_to_cmd_args(
-            alternative_args=str(
-                frontend_utils.ternary_switch(self.provided_args,
-                                              alternative_args)),
+        args, env = utils.delegate_settings_to_cmd_args(
+            alternative_args=(frontend_utils.ternary_switch(
+                self.provided_args,
+                alternative_args)),
             binary_name=self._binary_final(alternative_binary),
             settings_dict=connection.settings_dict,
             database_client=self.client_type(connection)
         )
+
+        return args, env
 
     @abc.abstractmethod
     def _pre_hook(self, connection: BaseDatabaseWrapper,
@@ -164,8 +163,14 @@ class AbstractDatabaseImporter(metaclass=abc.ABCMeta):
                            sql_file=input_file,
                            rollback_directory=temporary_directory_name)
 
-            if self._args != '':
-                self._args = '{} {}'.format(self._args, input_file)
+            # this converts our provided arguments to a list
+            # the pre_hook shim sometimes does some hacky stuff on this
+            # hence, if self._args already contains the input filename
+            # then we don't re-append it. SQLite requires this.
+            if input_file not in self._args:
+                self._args = [self._args, input_file]
+            else:
+                self._args = [self._args]
 
             args, env = self.args_and_env(
                 connection=connection, alternative_binary=alternative_binary,

@@ -36,6 +36,8 @@ class DatabasePatcher:
         module_dict = {
             'caretaker.frontend.frontends.database_importers.django.sqlite':
                 'SQLiteDatabaseImporter',
+            'caretaker.frontend.frontends.database_importers.django.postgres':
+                'PostgresDatabaseImporter',
         }
 
         for module_name, class_name in module_dict.items():

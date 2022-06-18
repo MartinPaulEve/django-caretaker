@@ -1,18 +1,17 @@
 import shutil
-import sqlite3
 from pathlib import Path
 
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.base.client import BaseDatabaseClient
 from django.db.backends.sqlite3.client import DatabaseClient
 
-from caretaker.frontend.frontends.database_importers.\
+from caretaker.frontend.frontends.database_importers. \
     abstract_database_importer import AbstractDatabaseImporter
 
 
 class SQLiteDatabaseImporter(AbstractDatabaseImporter):
     """
-    The SQLite database exporters
+    The SQLite database importer
     """
 
     backup_filename = 'backup.sql'
@@ -35,6 +34,9 @@ class SQLiteDatabaseImporter(AbstractDatabaseImporter):
         shutil.copy(input_file,
                     Path(rollback_directory) / self.backup_filename)
         Path(input_file).unlink()
+
+        # shim our command
+        self._args = '{} {}'.format(self._args, sql_file)
 
     def _rollback_hook(self, connection: BaseDatabaseWrapper,
                        input_file: str, sql_file: str,
