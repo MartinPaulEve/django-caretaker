@@ -1,4 +1,4 @@
-![Code Coverage](https://img.shields.io/badge/Code%20Coverage-97%25-success?style=flat)
+![Code Coverage](https://img.shields.io/badge/Code%20Coverage-98%25-success?style=flat)
 
 Package | Line Rate | Branch Rate | Health
 -------- | --------- | ----------- | ------
@@ -11,8 +11,8 @@ caretaker.frontend | 100% | 100% | ✔
 caretaker.frontend.frontends | 100% | 100% | ✔
 caretaker.frontend.frontends.database_exporters | 100% | 100% | ✔
 caretaker.frontend.frontends.database_exporters.django | 100% | 100% | ✔
-caretaker.frontend.frontends.database_importers | 100% | 93% | ✔
-caretaker.frontend.frontends.database_importers.django | 43% | 33% | ❌
+caretaker.frontend.frontends.database_importers | 100% | 100% | ✔
+caretaker.frontend.frontends.database_importers.django | 73% | 67% | ➖
 caretaker.management | 100% | 100% | ✔
 caretaker.management.commands | 89% | 86% | ✔
 caretaker.tests | 100% | 100% | ✔
@@ -25,6 +25,6 @@ caretaker.tests.frontend.django.backend.s3.commands | 100% | 100% | ✔
 caretaker.tests.frontend.django.database_exporters | 100% | 100% | ✔
 caretaker.tests.frontend.django.database_importers | 100% | 100% | ✔
 caretaker.utils | 98% | 94% | ✔
-**Summary** | **97%** (2121 / 2189) | **98%** (491 / 503) | ✔
+**Summary** | **98%** (2200 / 2247) | **98%** (508 / 517) | ✔
 
 _Minimum allowed line rate is `60%`_
