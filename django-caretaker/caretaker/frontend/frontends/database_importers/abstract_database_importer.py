@@ -186,7 +186,6 @@ class AbstractDatabaseImporter(metaclass=abc.ABCMeta):
             final_args = [str(arg) for arg in args]
 
             logger.info('Running: {}'.format(' '.join(final_args)))
-            print(final_args)
 
             try:
                 process: subprocess.Popen = subprocess.Popen(

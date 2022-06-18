@@ -22,7 +22,7 @@ from caretaker.frontend.frontends.database_exporters. \
     abstract_database_exporter import DatabaseExporterNotFoundError, \
     AbstractDatabaseExporter
 from caretaker.utils import log, file
-from caretaker.utils.zip import create_zip_file
+from caretaker.utils.zip import create_zip_file, unzip_file
 from caretaker.utils.file import FileType
 from caretaker.frontend.frontends.database_importers. \
     abstract_database_importer import AbstractDatabaseImporter, \
@@ -502,7 +502,7 @@ class DjangoFrontend(AbstractFrontend):
 
         # handle media ZIP files
         else:
-            raise NotImplementedError
+            unzip_file(input_file=input_file, dry_run=dry_run)
 
     @staticmethod
     def run_backup(data_file: str = 'data.json',
