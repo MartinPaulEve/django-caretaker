@@ -1,3 +1,4 @@
+import shutil
 import tempfile
 from logging import Logger
 from pathlib import Path
@@ -104,3 +105,6 @@ class TestImportPostgresDjango(TransactionTestCase):
 
             importer.binary_file = 'new_binary'
             self.assertEqual(importer.binary_file, 'new_binary')
+
+            importer._rollback_hook(connection=None, sql_file='', input_file='',
+                                    rollback_directory='')

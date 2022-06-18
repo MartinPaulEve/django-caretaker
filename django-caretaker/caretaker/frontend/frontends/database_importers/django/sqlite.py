@@ -35,6 +35,9 @@ class SQLiteDatabaseImporter(AbstractDatabaseImporter):
                     Path(rollback_directory) / self.backup_filename)
         Path(input_file).unlink()
 
+        # shim our command
+        self._args = '{} {}'.format(self._args, sql_file)
+
     def _rollback_hook(self, connection: BaseDatabaseWrapper,
                        input_file: str, sql_file: str,
                        rollback_directory: str) -> None:

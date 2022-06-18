@@ -21,7 +21,7 @@ from caretaker.frontend.frontends.database_importers. \
 from caretaker.utils import log
 
 
-class TestImportSQLDjango(TransactionTestCase):
+class TestImportSQLiteDjango(TransactionTestCase):
     def setUp(self):
         self.logger: Logger = log.get_logger('import-sqlite-test')
         self.logger.info('Setup for test SQLlite import into Django')

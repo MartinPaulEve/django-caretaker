@@ -1,7 +1,7 @@
 from django.db.backends.base.client import BaseDatabaseClient
 
 
-def delegate_settings_to_cmd_args(alternative_args: str,
+def delegate_settings_to_cmd_args(alternative_args: list | object,
                                   binary_name: str,
                                   settings_dict: dict,
                                   database_client: BaseDatabaseClient) \
@@ -16,7 +16,8 @@ def delegate_settings_to_cmd_args(alternative_args: str,
     :return: 2-tuple of args and env
     """
 
-    alternative_args = [alternative_args] if alternative_args else []
+    if not isinstance(alternative_args, list):
+        alternative_args = [alternative_args] if alternative_args else []
 
     args, env = database_client.settings_to_cmd_args_env(settings_dict,
                                                          alternative_args)

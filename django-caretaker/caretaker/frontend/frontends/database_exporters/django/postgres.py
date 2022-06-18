@@ -12,7 +12,7 @@ class PostgresDatabaseExporter(AbstractDatabaseExporter):
     """
 
     _binary_name = 'pg_dump'
-    _args = ''
+    _args = '-c'
 
     @property
     def binary_file(self) -> str:
