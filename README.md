@@ -1,7 +1,7 @@
 # django-caretaker
 django-caretaker ('The Caretaker') is a Django app that backs up your database and media files to a versioned remote object store, such as an AWS S3 bucket. It comes with the Terraform files to provision the required cloud infrastructures (e.g. S3 bucket) and provides management commands to schedule regular backups.
 
-![license](https://img.shields.io/github/license/martinpauleve/django-caretaker) ![activity](https://img.shields.io/github/last-commit/MartinPaulEve/django-caretaker) ![build status](https://github.com/MartinPaulEve/django-caretaker/actions/workflows/tests.yaml/badge.svg) ![Code Coverage](https://img.shields.io/badge/Code%20Coverage-100%25-success?style=flat) 
+![license](https://img.shields.io/github/license/martinpauleve/django-caretaker) ![activity](https://img.shields.io/github/last-commit/MartinPaulEve/django-caretaker) ![build status](https://github.com/MartinPaulEve/django-caretaker/actions/workflows/tests.yaml/badge.svg)
 
 ![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white) ![Django](https://img.shields.io/badge/django-%23092E20.svg?style=for-the-badge&logo=django&logoColor=white) ![Git](https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white) ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white) ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black) ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) ![Terraform](https://img.shields.io/badge/terraform-%235835CC.svg?style=for-the-badge&logo=terraform&logoColor=white)
 
@@ -134,3 +134,34 @@ We do not support in-memory SQLite databases for import_file operations. It's no
 * [How to read large Popen calls using select](https://stackoverflow.com/a/40929169/349003) by vz0.
 * [Rich](https://github.com/Textualize/rich) for beautiful output.
 * [Terraform](https://www.terraform.io/) by Hashicorp.
+
+## Test Coverage
+![Code Coverage](https://img.shields.io/badge/Code%20Coverage-99%25-success?style=flat)
+
+Package | Line Rate | Branch Rate | Health
+-------- | --------- | ----------- | ------
+. | 100% | 100% | ✔
+backend | 100% | 100% | ✔
+backend.backends | 100% | 100% | ✔
+backend.backends.terraform_aws | 100% | 100% | ✔
+frontend | 100% | 100% | ✔
+frontend.frontends | 100% | 100% | ✔
+frontend.frontends.database_exporters | 100% | 100% | ✔
+frontend.frontends.database_exporters.django | 100% | 100% | ✔
+frontend.frontends.database_importers | 100% | 100% | ✔
+frontend.frontends.database_importers.django | 100% | 100% | ✔
+management | 100% | 100% | ✔
+management.commands | 89% | 86% | ✔
+tests | 100% | 100% | ✔
+tests.backend | 100% | 100% | ✔
+tests.frontend | 100% | 100% | ✔
+tests.frontend.django | 100% | 100% | ✔
+tests.frontend.django.backend | 100% | 100% | ✔
+tests.frontend.django.backend.s3 | 100% | 100% | ✔
+tests.frontend.django.backend.s3.commands | 100% | 100% | ✔
+tests.frontend.django.database_exporters | 100% | 100% | ✔
+tests.frontend.django.database_importers | 100% | 100% | ✔
+utils | 98% | 94% | ✔
+**Summary** | **99%** (2281 / 2307) | **99%** (524 / 531) | ✔
+
+_Minimum allowed line rate is `60%`_
