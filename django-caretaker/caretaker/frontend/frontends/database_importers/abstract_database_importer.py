@@ -1,14 +1,11 @@
 import abc
-import shutil
 import subprocess
 import sys
 import tempfile
 from logging import Logger
-from pathlib import Path
 from typing import TextIO
 from typing.io import BinaryIO
 
-from django.core.management import CommandError
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.base.client import BaseDatabaseClient
 
@@ -106,14 +103,18 @@ class AbstractDatabaseImporter(metaclass=abc.ABCMeta):
         :param alternative_args: a different set of cmdline args to pass
         :return: 2-tuple of array of arguments and dict of environment variables
         """
-        return utils.delegate_settings_to_cmd_args(
-            alternative_args=str(
-                frontend_utils.ternary_switch(self.provided_args,
-                                              alternative_args)),
+        alternative_args = '' if not alternative_args else alternative_args
+
+        args, env = utils.delegate_settings_to_cmd_args(
+            alternative_args=alternative_args,
             binary_name=self._binary_final(alternative_binary),
             settings_dict=connection.settings_dict,
             database_client=self.client_type(connection)
         )
+
+        for provided_arg in self.provided_args:
+            args.append(provided_arg)
+        return args, env
 
     @abc.abstractmethod
     def _pre_hook(self, connection: BaseDatabaseWrapper,

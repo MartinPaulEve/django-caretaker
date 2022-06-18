@@ -126,7 +126,7 @@ else:
         },
         'postgres': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'github_actions',
+            'NAME': 'postgres',
             'USER': 'postgres',
             'PASSWORD': 'example',
             'HOST': '127.0.0.1',
