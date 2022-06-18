@@ -64,6 +64,12 @@ jobs:
           thresholds: '60 80'
       - name: Copy Coverage To Predictable Location
         run: cp code-coverage-results.md ./django-caretaker/
+      - name: Copy README template to new location
+        run: cp ./django-caretaker/README.template ./django-caretaker/README.md
+      - name: Echo new heading to README
+        run: printf '\n## Code Coverage\n' >> ./django-caretaker/README.md
+      - name: Cat code coverage
+        run: cat ./django-caretaker/code-coverage-results.md >> ./django-caretaker/README.md
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
         if: github.event_name == 'pull_request'
