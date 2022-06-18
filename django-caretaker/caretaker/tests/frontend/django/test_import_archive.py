@@ -50,8 +50,6 @@ class TestImportJSONDjango(TestCase):
 
                 self.assertTrue(zip_file.exists())
 
-                shutil.copy(zip_file, '/home/martin/new_media.zip')
-
                 # unlink the dummy file in the test directory that we
                 # want to test on restore
                 self.logger.info('Unlinking {}'.format(file_path))
