@@ -123,7 +123,8 @@ class BackendFactory:
 
         # see if there's a list of backends in the settings file
         # if there is, use it
-        backends = ['caretaker.backend.backends.s3']
+        backends = ['caretaker.backend.backends.s3',
+                    'caretaker.backend.backends.local']
 
         if hasattr(settings, 'CARETAKER_BACKENDS') and \
                 settings.CARETAKER_BACKENDS:
