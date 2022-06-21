@@ -56,26 +56,28 @@ class TestPushBackupDjangoLocal(AbstractDjangoLocalTest):
 
                 # test the error
                 with patch(
-                        'botocore.client.BaseClient._make_api_call',
-                        side_effect=boto3_error('upload_file')):
+                        'caretaker.backend.backends.'
+                        'local.LocalBackend._create_file_path',
+                        side_effect=OSError('Oh dear how sad never mind')):
                     # now test that when we add a new file it versions it
                     with temporary_file.open('w') as out_file:
                         out_file.write('test3')
 
-                    with self.assertRaises(Exception):
+                        with self.assertRaises(OSError):
+                            result = self.frontend.push_backup(
+                                backup_local_file=temporary_file,
+                                remote_key=self.json_key,
+                                backend=self.backend,
+                                bucket_name=self.bucket_name,
+                                raise_on_error=True
+                            )
+
+                        # now test without raise on error
                         result = self.frontend.push_backup(
                             backup_local_file=temporary_file,
                             remote_key=self.json_key,
                             backend=self.backend, bucket_name=self.bucket_name,
-                            raise_on_error=True
+                            raise_on_error=False
                         )
-
-                    # now test without raise on error
-                    result = self.frontend.push_backup(
-                        backup_local_file=temporary_file,
-                        remote_key=self.json_key,
-                        backend=self.backend, bucket_name=self.bucket_name,
-                        raise_on_error=False
-                    )
 
                     self.assertEqual(result, StoreOutcome.FAILED)

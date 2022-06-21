@@ -104,7 +104,8 @@ class LocalBackend(AbstractBackend):
                 if match:
                     sub_version = {
                         'version_id': match.group(1),
-                        'last_modified': datetime.fromtimestamp(float(match.group(2))),
+                        'last_modified':
+                            datetime.fromtimestamp(float(match.group(2))),
                         'size': os.path.getsize(file_name),
                         'file_name': file_name
                     }
@@ -137,7 +138,6 @@ class LocalBackend(AbstractBackend):
                                        remote_key=remote_key)
 
             if 'file_name' in latest:
-                print(filecmp.cmp(latest['file_name'], local_file))
                 if filecmp.cmp(latest['file_name'], local_file):
                     self.logger.info(
                         'Latest backup is equal to remote S3 version')
@@ -147,7 +147,7 @@ class LocalBackend(AbstractBackend):
             new_path = self._create_file_path(bucket_name, remote_key)
 
             # create the directory if it doesn't exist
-            new_path.mkdir(parents=True, exist_ok=True)
+            new_path.parent.mkdir(parents=True, exist_ok=True)
 
             # copy the file
             shutil.copy(local_file, str(new_path))
