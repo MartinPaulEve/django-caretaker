@@ -66,6 +66,8 @@ class TestListBackupsDjangoLocal(AbstractDjangoLocalTest):
                     backend=self.backend
                 )
 
+                print(result)
+
                 self.assertIsNotNone(result)
 
                 self.assertTrue(result[0]['size'] == 5)

@@ -1,4 +1,5 @@
 import filecmp
+import glob
 import importlib
 import io
 import logging
@@ -24,6 +25,11 @@ def get_backend():
 class LocalBackend(AbstractBackend):
     @property
     def terraform_files(self) -> list[str]:
+        """
+        The terraform files for this backend
+
+        :return: a list of terraform files
+        """
         return []
 
     @property
@@ -66,6 +72,14 @@ class LocalBackend(AbstractBackend):
 
     def _most_recent(self, bucket_name: str, remote_key: str = '',
                      raise_on_error: bool = False) -> dict:
+        """
+        Retrieve the most recent version of the file stored
+
+        :param bucket_name: the name of the bucket
+        :param remote_key: the remote key (filename) to list
+        :param raise_on_error: whether to raise an exception on error
+        :return: a dictionary of the most recent version of the file
+        """
         versions = self.versions(bucket_name=bucket_name,
                                  remote_key=remote_key,
                                  raise_on_error=raise_on_error)
@@ -111,6 +125,9 @@ class LocalBackend(AbstractBackend):
                     }
 
                     versions.append(sub_version)
+
+            # sort versions by last_modified in the dictionary
+            versions.sort(key=lambda item: item['last_modified'], reverse=True)
 
             return versions
         except OSError as oe:
@@ -164,6 +181,13 @@ class LocalBackend(AbstractBackend):
         return StoreOutcome.STORED
 
     def _create_file_path(self, bucket_name, remote_key) -> Path:
+        """
+        Create a file path for the backup
+
+        :param bucket_name: the bucket name
+        :param remote_key: the remote key (filename)
+        :return:
+        """
         file_pattern = self.file_pattern_raw.replace(
             '{{version}}', str(uuid.uuid4())
         )
@@ -178,12 +202,21 @@ class LocalBackend(AbstractBackend):
         return new_path
 
     def _get_file_path(self, bucket_name, remote_key, version) -> Path:
+        """
+        Return a wildcarded/glob file pattern for the backup
+
+        :param bucket_name: the bucket name
+        :param remote_key: the remote key (filename)
+        :param version: the version of the backup
+        :return: a Path with a wildcard
+        """
         file_pattern = self.file_pattern_raw.replace(
             '{{version}}', version
         )
 
+        # date in this function is a glob
         file_pattern = file_pattern.replace(
-            '{{date}}', time.time()
+            '{{date}}', '*'
         )
 
         new_path = Path(self.directory_store) / Path(bucket_name)
@@ -209,7 +242,9 @@ class LocalBackend(AbstractBackend):
                 remote_key
             ))
 
-            new_path = self._get_file_path(bucket_name, remote_key, version_id)
+            new_path = glob.glob(str(self._get_file_path(bucket_name,
+                                                         remote_key,
+                                                         version_id)))[0]
 
             with open(new_path, 'rb') as fh:
                 buf = io.BytesIO(fh.read())
@@ -241,9 +276,13 @@ class LocalBackend(AbstractBackend):
 
         # normalize path
         out_file = Path(local_file).expanduser()
-        new_path = self._get_file_path(bucket_name, remote_key, version_id)
+        new_path = ''
 
         try:
+            new_path = glob.glob(str(self._get_file_path(bucket_name,
+                                                         remote_key,
+                                                         version_id)))[0]
+
             shutil.copy(str(new_path), out_file)
 
             self.logger.info('Saved version {} of {} to {}'.format(
@@ -254,9 +293,12 @@ class LocalBackend(AbstractBackend):
 
             return True
         except OSError as ce:
-            self.logger.error('Unable to retrieve version {} of '
-                              '{} to {}'.format(version_id, remote_key,
-                                                out_file))
+            self.logger.error(
+                'Unable to retrieve version {} of '
+                '{} to {}. Attempted to open {}.'.format(version_id,
+                                                         remote_key,
+                                                         out_file,
+                                                         new_path))
 
             if raise_on_error:
                 raise ce
