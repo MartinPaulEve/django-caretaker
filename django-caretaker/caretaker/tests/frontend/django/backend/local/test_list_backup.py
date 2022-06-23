@@ -1,7 +1,6 @@
 import tempfile
 from unittest.mock import patch
 
-import botocore.exceptions
 from django.conf import settings
 from moto import mock_s3
 
@@ -60,17 +59,25 @@ class TestListBackupsDjangoLocal(AbstractDjangoLocalTest):
                     temporary_directory_name=temporary_directory_name,
                     contents='test2')
 
+                result, temporary_file = upload_temporary_file(
+                    test_class=self,
+                    temporary_directory_name=temporary_directory_name,
+                    contents='test7')
+
+                result, temporary_file = upload_temporary_file(
+                    test_class=self,
+                    temporary_directory_name=temporary_directory_name,
+                    contents='test89')
+
                 # first test that we get nothing back
                 result = self.frontend.list_backups(
                     remote_key=self.json_key, bucket_name=self.bucket_name,
                     backend=self.backend
                 )
 
-                print(result)
-
                 self.assertIsNotNone(result)
 
-                self.assertTrue(result[0]['size'] == 5)
+                self.assertTrue(result[0]['size'] == 6)
                 self.assertFalse(result[0]['version_id'] == 'null')
                 self.assertFalse(version == result[0]['version_id'])
                 version = result[0]['version_id']

@@ -84,15 +84,9 @@ class LocalBackend(AbstractBackend):
                                  remote_key=remote_key,
                                  raise_on_error=raise_on_error)
 
-        most_recent = {}
-
-        for version in versions:
-            if 'last_modified' not in most_recent:
-                most_recent = version
-            elif most_recent['last_modified'] > most_recent['last_modified']:
-                most_recent = version
-
-        return most_recent
+        # versions is sorted by date modified so index zero is always the most
+        # recent
+        return versions[0] if len(versions) > 0 else []
 
     def versions(self, bucket_name: str, remote_key: str = '',
                  raise_on_error: bool = False) -> list[dict]:
