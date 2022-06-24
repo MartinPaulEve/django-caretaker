@@ -193,7 +193,9 @@ AWS_DEFAULT_REGION = 'us-east-1'
 CARETAKER_BACKUP_BUCKET = 'caretakertestbackup'
 CARETAKER_ADDITIONAL_BACKUP_PATHS = ['/home/martin/data', '/home/martin/Pics']
 CARETAKER_BACKEND = 'Amazon S3'
-CARETAKER_BACKENDS = ['caretaker.backend.backends.s3']
+CARETAKER_BACKENDS = ['caretaker.backend.backends.s3',
+                      'caretaker.backend.backends.local']
 CARETAKER_FRONTEND = 'Django'
 CARETAKER_FRONTENDS = ['caretaker.frontend.frontends.django']
-
+CARETAKER_LOCAL_STORE_DIRECTORY = '/home/martin/caretaker_backups'
+CARETAKER_LOCAL_FILE_PATTERN = '{{version}}.{{date}}'

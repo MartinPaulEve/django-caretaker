@@ -59,20 +59,20 @@ class TestPushBackupDjangoS3(AbstractDjangoS3Test):
                 with temporary_file.open('w') as out_file:
                     out_file.write('test3')
 
-                with self.assertRaises(Exception):
+                    with self.assertRaises(Exception):
+                        result = self.frontend.push_backup(
+                            backup_local_file=temporary_file,
+                            remote_key=self.json_key,
+                            backend=self.backend, bucket_name=self.bucket_name,
+                            raise_on_error=True
+                        )
+
+                    # now test without raise on error
                     result = self.frontend.push_backup(
                         backup_local_file=temporary_file,
                         remote_key=self.json_key,
                         backend=self.backend, bucket_name=self.bucket_name,
-                        raise_on_error=True
+                        raise_on_error=False
                     )
 
-                # now test without raise on error
-                result = self.frontend.push_backup(
-                    backup_local_file=temporary_file,
-                    remote_key=self.json_key,
-                    backend=self.backend, bucket_name=self.bucket_name,
-                    raise_on_error=False
-                )
-
-                self.assertEqual(result, StoreOutcome.FAILED)
+                    self.assertEqual(result, StoreOutcome.FAILED)
