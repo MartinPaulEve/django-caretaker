@@ -16,24 +16,20 @@ Add 'caretaker' to your installed apps in your Django settings file.
 
 Add 'path('caretaker/', include('caretaker.urls')),' to your urls.py file to enable the /caretaker/list view.
 
-django-caretaker requires Python 3.10+ as it makes use of newer language features.
-
 ## Setup and Configuration
 ### Configure a backend and access rights
-django-caretaker has the ability to support multiple cloud-based object store backends. However, at the moment, the only backend provider that we have is for Amazon S3. This will expand as the project grows.
+django-caretaker has the ability to support multiple cloud-based object store backends. At the moment, we have support for either Amazon S3 or local storage.
 
 #### Amazon S3 / IAM
 Ensure that you have a working AWS cli client and configure it if not.
 
 Set the BACKUP_BUCKET variable in your settings.py file. This must be a globally unique name for the S3 bucket. You should also set the MEDIA_ROOT folder so that we know what to back up:
 
-    CARETAKER_BACKUP_BUCKET = 'caretakertestbackup'
-    CARETAKER_ADDITIONAL_BACKUP_PATHS = ['/home/user/path1', '/home/user/path2']
-    CARETAKER_BACKEND = 'Amazon S3'
-    CARETAKER_BACKENDS = ['caretaker.backend.backends.s3']
-    CARETAKER_FRONTEND = 'Django'
-    CARETAKER_FRONTENDS = ['caretaker.frontend.frontends.django']
-    MEDIA_ROOT = '/var/www/media'
+    CARETAKER_BACKUP_BUCKET = 'caretakertestbackup'  # put the name of the backup instance here
+    CARETAKER_ADDITIONAL_BACKUP_PATHS = ['/home/user/path1', '/home/user/path2']  # put additional paths to backup here
+    CARETAKER_BACKEND = 'Amazon S3' # note that this is case sensitive
+    CARETAKER_FRONTEND = 'Django'  # note that this is case sensitive
+    MEDIA_ROOT = '/var/www/media'  # add your MEDIA ROOT to backup
 
 The CARETAKER_BACKENDS list allows you to specify the available backends. The CARETAKER_BACKEND variable selects the backend to use (there is only S3 at the moment). The same is true of CARETAKER_FRONTENDS and CARETAKER_FRONTEND (which only support Django at the moment).
 
@@ -50,6 +46,21 @@ Note down the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and put them in your s
     AWS_ACCESS_KEY_ID = 'PUT_ACCESS_KEY_HERE'
     AWS_SECRET_ACCESS_KEY = 'PUT_SECRET_ACCESS_KEY_HERE'
 
+#### Local Storage
+Instead of using a remote cloud location, caretaker will allow you to store your backups locally. Obviously, it is important that you mirror these backups to other off-site locations.
+
+To configure the local storage backend, adjust your settings.py file to contain (for example):
+
+    CARETAKER_BACKUP_BUCKET = 'caretakertestbackup'  # put the name of the backup instance here
+    CARETAKER_ADDITIONAL_BACKUP_PATHS = ['/home/user/path1', '/home/user/path2']  # put additional paths to backup here
+    CARETAKER_BACKEND = 'Local' # note that this is case sensitive
+    CARETAKER_FRONTEND = 'Django'  # note that this is case sensitive
+    MEDIA_ROOT = '/var/www/media'  # add your MEDIA ROOT to backup
+    CARETAKER_LOCAL_STORE_DIRECTORY = '/path/to/where/you/store/backups'  # specify where to store the backups
+    CARETAKER_LOCAL_FILE_PATTERN = '{{version}}.{{date}}'  # this is the recommended format of backup files
+
+There is no Terraform configuration for the local backend.
+
 ### Install the Backup Script in Cron
 To install a cron line that will run the backup daily at 15 minutes past midnight on the server, run:
 
@@ -62,10 +73,36 @@ Caretaker provides a number of management commands that can be accessed from man
 ### Run Backup
 This is the most important command. It backs up your database and your media files to the remote store.
 
-    usage: manage.py run_backup [-h] [--output-directory OUTPUT_DIRECTORY] [-a ADDITIONAL_FILES] [--version] [-v {0,1,2,3}] [--settings SETTINGS]
-                            [--pythonpath PYTHONPATH] [--traceback] [--no-color] [--force-color] [--skip-checks]
-    
-    Creates a backup set and pushes it to the remote store
+    Usage: manage.py run_backup [OPTIONS]
+
+      Pushes LOCAL-FILE to the latest version of REMOTE-KEY
+
+    Options:
+      --version                      Show the version and exit.
+      -h, --help                     Show this message and exit.
+      -v, --verbosity INTEGER RANGE  Verbosity level; 0=minimal output, 1=normal
+                                     output, 2=verbose output, 3=very verbose
+                                     output.  [0<=x<=3]
+      --settings SETTINGS            The Python path to a settings module, e.g.
+                                     "myproject.settings.main". If this is not
+                                     provided, the DJANGO_SETTINGS_MODULE
+                                     environment variable will be used.
+      --pythonpath PYTHONPATH        A directory to add to the Python path, e.g.
+                                     "/home/djangoprojects/myproject".
+      --traceback / --no-traceback   Raise on CommandError exceptions.
+      --color / --no-color           Enable or disable output colorization.
+                                     Default is to autodetect the best behavior.
+      -a, --additional-files TEXT    Additional directories to add to the zip file
+      -b, --backend-name TEXT        The name of the backend to use
+      -f, --frontend-name TEXT       The name of the frontend to use
+      -s, --sql-mode                 Whether to output SQL instead of standard
+                                     JSON
+      -d, --database TEXT            The database to use
+      -a, --alternative-binary TEXT  The alternative binary to use
+      --alternative-arguments TEXT   The alternative arguments to use
+      --data-file TEXT               The data filename to use
+      --archive-file TEXT            The archive filename to use
+
 
 Example usage:
 
@@ -74,10 +111,28 @@ Example usage:
 ### Push Backup
 This command pushes a backup to the server.
 
-    usage: manage.py push_backup [-h] [--backup-local-file BACKUP_LOCAL_FILE] [--remote-key REMOTE_KEY] [--version] [-v {0,1,2,3}]
-                             [--settings SETTINGS] [--pythonpath PYTHONPATH] [--traceback] [--no-color] [--force-color] [--skip-checks]
-    
-    Pushes the backup SQL to the remote store
+    Usage: manage.py push_backup [OPTIONS] REMOTE_KEY LOCAL_FILE
+
+      Pushes LOCAL-FILE to the latest version of REMOTE-KEY
+
+    Options:
+      --version                      Show the version and exit.
+      -h, --help                     Show this message and exit.
+      -v, --verbosity INTEGER RANGE  Verbosity level; 0=minimal output, 1=normal
+                                     output, 2=verbose output, 3=very verbose
+                                     output.  [0<=x<=3]
+      --settings SETTINGS            The Python path to a settings module, e.g.
+                                     "myproject.settings.main". If this is not
+                                     provided, the DJANGO_SETTINGS_MODULE
+                                     environment variable will be used.
+      --pythonpath PYTHONPATH        A directory to add to the Python path, e.g.
+                                     "/home/djangoprojects/myproject".
+      --traceback / --no-traceback   Raise on CommandError exceptions.
+      --color / --no-color           Enable or disable output colorization.
+                                     Default is to autodetect the best behavior.
+      -b, --backend-name TEXT        The name of the backend to use
+      -f, --frontend-name TEXT       The name of the frontend to use
+
 
 Example usage:
 
@@ -86,11 +141,28 @@ Example usage:
 ### Pull Backup
 This command retrieves a backup file from the server. You must also specify the version you wish to retrieve.
 
-    usage: manage.py pull_backup [-h] [--backup-version BACKUP_VERSION] [--out-file OUT_FILE] [--remote-key REMOTE_KEY] [--version]
-                             [-v {0,1,2,3}] [--settings SETTINGS] [--pythonpath PYTHONPATH] [--traceback] [--no-color] [--force-color]
-                             [--skip-checks]
-    
-    Pulls a specific backup SQL from the remote store
+    Usage: manage.py pull_backup [OPTIONS] REMOTE_KEY LOCAL_FILE BACKUP_VERSION
+
+      Saves BACKUP-VERSION of REMOTE-KEY into LOCAL-FILE
+
+    Options:
+      --version                      Show the version and exit.
+      -h, --help                     Show this message and exit.
+      -v, --verbosity INTEGER RANGE  Verbosity level; 0=minimal output, 1=normal
+                                     output, 2=verbose output, 3=very verbose
+                                     output.  [0<=x<=3]
+      --settings SETTINGS            The Python path to a settings module, e.g.
+                                     "myproject.settings.main". If this is not
+                                     provided, the DJANGO_SETTINGS_MODULE
+                                     environment variable will be used.
+      --pythonpath PYTHONPATH        A directory to add to the Python path, e.g.
+                                     "/home/djangoprojects/myproject".
+      --traceback / --no-traceback   Raise on CommandError exceptions.
+      --color / --no-color           Enable or disable output colorization.
+                                     Default is to autodetect the best behavior.
+      -b, --backend-name TEXT        The name of the backend to use
+      -f, --frontend-name TEXT       The name of the frontend to use
+
 
 Example:
 
@@ -115,6 +187,10 @@ Unzip backup.zip and replace the media folders with the results.
 Reload the database:
 
     manage.py loaddata /home/user/data.json
+
+You can also reload the database and media files using the built-in command:
+
+    manage.py import_file data.json|data.sql|media.zip
 
 ## Oracle support
 SQL export is not available for Oracle. It's a nightmare to get Oracle tools installed on our testing systems. Hence, Oracle systems will have to use the old dumpdata methods.
@@ -141,28 +217,27 @@ We do not support in-memory SQLite databases for import_file operations. It's no
 Package | Line Rate | Branch Rate | Health
 -------- | --------- | ----------- | ------
 . | 100% | 100% | ✔
-caretaker | 100% | 100% | ✔
-caretaker.backend | 100% | 100% | ✔
-caretaker.backend.backends | 100% | 100% | ✔
-caretaker.backend.backends.terraform_aws | 100% | 100% | ✔
-caretaker.frontend | 100% | 100% | ✔
-caretaker.frontend.frontends | 100% | 100% | ✔
-caretaker.frontend.frontends.database_exporters | 100% | 100% | ✔
-caretaker.frontend.frontends.database_exporters.django | 100% | 100% | ✔
-caretaker.frontend.frontends.database_importers | 100% | 100% | ✔
-caretaker.frontend.frontends.database_importers.django | 100% | 100% | ✔
-caretaker.management | 100% | 100% | ✔
-caretaker.management.commands | 100% | 100% | ✔
-caretaker.tests | 100% | 100% | ✔
-caretaker.tests.commands | 100% | 100% | ✔
-caretaker.tests.frontend | 100% | 100% | ✔
-caretaker.tests.frontend.django | 100% | 100% | ✔
-caretaker.tests.frontend.django.backend | 100% | 100% | ✔
-caretaker.tests.frontend.django.backend.local | 100% | 100% | ✔
-caretaker.tests.frontend.django.backend.s3 | 100% | 100% | ✔
-caretaker.tests.frontend.django.database_exporters | 100% | 100% | ✔
-caretaker.tests.frontend.django.database_importers | 100% | 100% | ✔
-caretaker.utils | 100% | 100% | ✔
+backend | 100% | 100% | ✔
+backend.backends | 100% | 100% | ✔
+backend.backends.terraform_aws | 100% | 100% | ✔
+frontend | 100% | 100% | ✔
+frontend.frontends | 100% | 100% | ✔
+frontend.frontends.database_exporters | 100% | 100% | ✔
+frontend.frontends.database_exporters.django | 100% | 100% | ✔
+frontend.frontends.database_importers | 100% | 100% | ✔
+frontend.frontends.database_importers.django | 100% | 100% | ✔
+management | 100% | 100% | ✔
+management.commands | 100% | 100% | ✔
+tests | 100% | 100% | ✔
+tests.commands | 100% | 100% | ✔
+tests.frontend | 100% | 100% | ✔
+tests.frontend.django | 100% | 100% | ✔
+tests.frontend.django.backend | 100% | 100% | ✔
+tests.frontend.django.backend.local | 100% | 100% | ✔
+tests.frontend.django.backend.s3 | 100% | 100% | ✔
+tests.frontend.django.database_exporters | 100% | 100% | ✔
+tests.frontend.django.database_importers | 100% | 100% | ✔
+utils | 100% | 100% | ✔
 **Summary** | **100%** (2878 / 2878) | **100%** (651 / 651) | ✔
 
 _Minimum allowed line rate is `60%`_
