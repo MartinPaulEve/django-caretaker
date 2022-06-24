@@ -190,7 +190,7 @@ Reload the database:
 
 You can also reload the database and media files using the built-in command:
 
-    manage.py import_file data.json|data.sql|media.zip
+    manage.py import_backup data.json|data.sql|media.zip
 
 ## Oracle support
 SQL export is not available for Oracle. It's a nightmare to get Oracle tools installed on our testing systems. Hence, Oracle systems will have to use the old dumpdata methods.
