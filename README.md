@@ -198,6 +198,16 @@ SQL export is not available for Oracle. It's a nightmare to get Oracle tools ins
 ## SQLite support
 We do not support in-memory SQLite databases for import_file operations. It's not possible to destroy and reload the in-memory database through Django, which is what we do with the on-disk equivalent.
 
+## Post-Execution Hooks
+Frontends support post-execution hooks. You can use these to execute commands on the local system after a backup has been created.
+
+To use post-execution hooks, add items to the CARETAKER_POST_EXECUTE variable:
+
+    CARETAKER_POST_EXECUTE = ['rsync -avz --delete {{ local_store_directory }}/{{ backup_bucket }} remote:~/backups',
+                          'ls {{ local_store_directory }}/{{ backup_bucket }}']
+
+In post-execution hooks you can get access to CARETAKER_ variables by using the ""{{ variable_name }}"" syntax shown above. Hence, "{{ local_store_directory}}" in a hook will be converted to the value of CARETAKER.LOCAL_STORE_DIRECTORY. Do not include the word "CTVARIABLE" in a post-execute hook.
+
 ## Credits
 * [A context manager for files or stdout](https://stackoverflow.com/a/17603000/349003) by Wolph.
 * [AWS CLI](https://aws.amazon.com/cli/) for interactions with AWS.
@@ -217,27 +227,28 @@ We do not support in-memory SQLite databases for import_file operations. It's no
 Package | Line Rate | Branch Rate | Health
 -------- | --------- | ----------- | ------
 . | 100% | 100% | ✔
-backend | 100% | 100% | ✔
-backend.backends | 100% | 100% | ✔
-backend.backends.terraform_aws | 100% | 100% | ✔
-frontend | 100% | 100% | ✔
-frontend.frontends | 100% | 100% | ✔
-frontend.frontends.database_exporters | 100% | 100% | ✔
-frontend.frontends.database_exporters.django | 100% | 100% | ✔
-frontend.frontends.database_importers | 100% | 100% | ✔
-frontend.frontends.database_importers.django | 100% | 100% | ✔
-management | 100% | 100% | ✔
-management.commands | 100% | 100% | ✔
-tests | 100% | 100% | ✔
-tests.commands | 100% | 100% | ✔
-tests.frontend | 100% | 100% | ✔
-tests.frontend.django | 100% | 100% | ✔
-tests.frontend.django.backend | 100% | 100% | ✔
-tests.frontend.django.backend.local | 100% | 100% | ✔
-tests.frontend.django.backend.s3 | 100% | 100% | ✔
-tests.frontend.django.database_exporters | 100% | 100% | ✔
-tests.frontend.django.database_importers | 100% | 100% | ✔
-utils | 100% | 100% | ✔
-**Summary** | **100%** (2878 / 2878) | **100%** (651 / 651) | ✔
+caretaker | 100% | 100% | ✔
+caretaker.backend | 100% | 100% | ✔
+caretaker.backend.backends | 100% | 100% | ✔
+caretaker.backend.backends.terraform_aws | 100% | 100% | ✔
+caretaker.frontend | 100% | 100% | ✔
+caretaker.frontend.frontends | 100% | 100% | ✔
+caretaker.frontend.frontends.database_exporters | 100% | 100% | ✔
+caretaker.frontend.frontends.database_exporters.django | 100% | 100% | ✔
+caretaker.frontend.frontends.database_importers | 100% | 100% | ✔
+caretaker.frontend.frontends.database_importers.django | 100% | 100% | ✔
+caretaker.management | 100% | 100% | ✔
+caretaker.management.commands | 100% | 100% | ✔
+caretaker.tests | 100% | 100% | ✔
+caretaker.tests.commands | 100% | 100% | ✔
+caretaker.tests.frontend | 100% | 100% | ✔
+caretaker.tests.frontend.django | 100% | 100% | ✔
+caretaker.tests.frontend.django.backend | 100% | 100% | ✔
+caretaker.tests.frontend.django.backend.local | 100% | 100% | ✔
+caretaker.tests.frontend.django.backend.s3 | 100% | 100% | ✔
+caretaker.tests.frontend.django.database_exporters | 100% | 100% | ✔
+caretaker.tests.frontend.django.database_importers | 100% | 100% | ✔
+caretaker.utils | 100% | 100% | ✔
+**Summary** | **100%** (2928 / 2928) | **100%** (675 / 675) | ✔
 
 _Minimum allowed line rate is `60%`_
