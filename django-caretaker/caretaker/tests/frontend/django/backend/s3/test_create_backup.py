@@ -1,3 +1,4 @@
+import subprocess
 import tempfile
 from pathlib import Path
 
@@ -8,7 +9,8 @@ from moto import mock_s3
 from caretaker.backend.abstract_backend import StoreOutcome
 from caretaker.tests.frontend.django.backend.s3.caretaker_test import \
     AbstractDjangoS3Test
-from caretaker.tests.utils import upload_temporary_file, file_in_zip
+from caretaker.tests.utils import upload_temporary_file, file_in_zip, \
+    captured_output
 
 
 @mock_s3
@@ -57,6 +59,7 @@ class TestCreateBackupDjangoS3(AbstractDjangoS3Test):
             settings.MEDIA_ROOT = ''
             settings.CARETAKER_ADDITIONAL_BACKUP_PATHS = []
 
+
             json_file, data_file = self.frontend.create_backup(
                 output_directory='',
                 path_list=[temporary_directory_name],
@@ -85,13 +88,53 @@ class TestCreateBackupDjangoS3(AbstractDjangoS3Test):
 
                     out_file.write('test')
 
-                json_file, data_file = self.frontend.create_backup(
-                    output_directory=temporary_directory_name,
-                    path_list=[temporary_directory_name]
-                )
+                with captured_output() as (stdout, stderr):
+                    json_file, data_file = self.frontend.create_backup(
+                        output_directory=temporary_directory_name,
+                        path_list=[temporary_directory_name]
+                    )
+
+                    # test the post-hook execute
+                    stdout_value = stdout.getvalue()
+                    self.assertIn('hello /home/martin/caretaker_bucket',
+                                  stdout_value)
+
+                    self.assertIn('just_hello',
+                                  stdout_value)
 
                 self.assertTrue(file_in_zip(zip_file=data_file,
                                             filename=tmp_filename))
+
+                # test various other aspects of post-hook execution
+                del settings.CARETAKER_POST_EXECUTE
+
+                # just check this runs
+                with captured_output() as (stdout, stderr):
+                    json_file, data_file = self.frontend.create_backup(
+                        output_directory=temporary_directory_name,
+                        path_list=[temporary_directory_name]
+                    )
+
+                settings.CARETAKER_POST_EXECUTE = ['COMMAND_DOES_NOT_EXIST']
+
+                with captured_output() as (stdout, stderr):
+                    with self.assertRaises(FileNotFoundError):
+                        json_file, data_file = self.frontend.create_backup(
+                            output_directory=temporary_directory_name,
+                            path_list=[temporary_directory_name]
+                        )
+
+                settings.CARETAKER_POST_EXECUTE = ['false']
+
+                with captured_output() as (stdout, stderr):
+                    with self.assertRaises(subprocess.CalledProcessError):
+                        json_file, data_file = self.frontend.create_backup(
+                            output_directory=temporary_directory_name,
+                            path_list=[temporary_directory_name]
+                        )
+
+                # cleanup
+                del settings.CARETAKER_POST_EXECUTE
 
             settings.MEDIA_ROOT = ''
 
