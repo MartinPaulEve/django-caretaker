@@ -1,5 +1,6 @@
 import io
 import logging
+import re
 import subprocess
 import tempfile
 from io import StringIO
@@ -21,12 +22,12 @@ from caretaker.frontend.abstract_frontend import AbstractFrontend, FrontendError
 from caretaker.frontend.frontends.database_exporters. \
     abstract_database_exporter import DatabaseExporterNotFoundError, \
     AbstractDatabaseExporter
-from caretaker.utils import log, file
-from caretaker.utils.zip import create_zip_file, unzip_file
-from caretaker.utils.file import FileType
 from caretaker.frontend.frontends.database_importers. \
     abstract_database_importer import AbstractDatabaseImporter, \
     DatabaseImporterNotFoundError
+from caretaker.utils import log, file
+from caretaker.utils.file import FileType
+from caretaker.utils.zip import create_zip_file, unzip_file
 
 
 def get_frontend():
@@ -235,7 +236,75 @@ class DjangoFrontend(AbstractFrontend):
 
             logger.info('Wrote {} ({})'.format(archive_file, zip_file))
 
+            # run the post-execute hook
+            DjangoFrontend._post_execute_hook(logger=logger)
+
             return output_directory / data_file, zip_file
+
+    @staticmethod
+    def _post_execute_hook(logger: logging.Logger):
+        """
+        Runs post-execute hook functions.
+
+        :param logger: logger instance
+        """
+        logger.info('Running post-execute hooks')
+
+        hooks = []
+        replaced_hooks = []
+        hook_regex = r'\{\{\s*(.+?)\s*\}\}'
+
+        if hasattr(settings, 'CARETAKER_POST_EXECUTE') and \
+                settings.CARETAKER_POST_EXECUTE:
+            hooks = settings.CARETAKER_POST_EXECUTE
+
+        # run variable substitution of hook functions
+        for hook in hooks:
+            replacements = re.findall(hook_regex, hook)
+
+            if replacements:
+                for replacement in replacements:
+                    # grab the variable from settings
+                    raw_variable = replacement.upper()
+                    variable_name = 'CARETAKER_{}'.format(raw_variable)
+                    variable = getattr(settings, variable_name)
+
+                    # build a new replacement regex with the variable
+                    new_regex = r'{{\s*CTVARIABLE\s*}}'.replace(
+                        'CTVARIABLE',
+                        raw_variable)
+
+                    new_hook, replaces = re.subn(pattern=new_regex,
+                                                 repl=variable,
+                                                 string=hook,
+                                                 flags=re.IGNORECASE)
+
+                    # replace the hook
+                    hook = new_hook
+
+                replaced_hooks.append(hook)
+            else:
+                replaced_hooks.append(hook)
+
+        for hook in replaced_hooks:
+            logger.info('Executing: {}'.format(hook))
+
+            # use stdout
+            output_file = '-'
+
+            process: subprocess.Popen = subprocess.Popen(hook.split(' '),
+                                                         stdout=subprocess.PIPE,
+                                                         bufsize=8192,
+                                                         shell=False)
+
+            reader = frontend_utils.BufferedProcessReader(process)
+            reader.handle_process(output_filename=output_file)
+
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(
+                    returncode=process.returncode,
+                    cmd=hook,
+                    output='Output not available')
 
     @staticmethod
     def export_json(data_file, logger, output_directory) -> StringIO:

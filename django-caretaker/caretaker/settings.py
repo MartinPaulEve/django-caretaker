@@ -200,3 +200,5 @@ CARETAKER_FRONTEND = 'Django'  # note that this is case sensitive
 CARETAKER_FRONTENDS = ['caretaker.frontend.frontends.django']
 CARETAKER_LOCAL_STORE_DIRECTORY = '/home/martin/caretaker_backups'
 CARETAKER_LOCAL_FILE_PATTERN = '{{version}}.{{date}}'
+CARETAKER_POST_EXECUTE = ['rsync -avz --delete {{ local_store_directory}}/{{ backup_bucket}} remote:~/backups',
+                          'ls {{ local_store_directory}}/{{ backup_bucket}}']

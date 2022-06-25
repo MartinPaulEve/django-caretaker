@@ -30,6 +30,11 @@ class AbstractDjangoS3Test(AbstractCaretakerTest, metaclass=abc.ABCMeta):
         settings.CARETAKER_BACKEND = ''
         settings.CARETAKER_FRONTEND = ''
         settings.CARETAKER_BACKUP_BUCKET = 'caretaker_bucket'
+        settings.CARETAKER_LOCAL_STORE_DIRECTORY = '/home/martin'
+        settings.CARETAKER_POST_EXECUTE = [
+            'echo hello {{ local_store_directory}}/{{ backup_bucket}}',
+            'echo just_hello'
+        ]
 
         self.bucket_name = settings.CARETAKER_BACKUP_BUCKET
 

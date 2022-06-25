@@ -32,6 +32,8 @@ class AbstractDjangoLocalTest(AbstractCaretakerTest, metaclass=abc.ABCMeta):
         settings.CARETAKER_BACKUP_BUCKET = 'caretaker_bucket'
         settings.CARETAKER_LOCAL_STORE_DIRECTORY = ''
         settings.CARETAKER_LOCAL_FILE_PATTERN = '{{version}}.{{date}}'
+        settings.CARETAKER_POST_EXECUTE = [
+            'echo {{ local_store_directory}}/{{ backup_bucket}}']
 
         self.bucket_name = settings.CARETAKER_BACKUP_BUCKET
 

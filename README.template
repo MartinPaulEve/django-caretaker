@@ -198,6 +198,16 @@ SQL export is not available for Oracle. It's a nightmare to get Oracle tools ins
 ## SQLite support
 We do not support in-memory SQLite databases for import_file operations. It's not possible to destroy and reload the in-memory database through Django, which is what we do with the on-disk equivalent.
 
+## Post-Execution Hooks
+Frontends support post-execution hooks. You can use these to execute commands on the local system after a backup has been created.
+
+To use post-execution hooks, add items to the CARETAKER_POST_EXECUTE variable:
+
+    CARETAKER_POST_EXECUTE = ['rsync -avz --delete {{ local_store_directory }}/{{ backup_bucket }} remote:~/backups',
+                          'ls {{ local_store_directory }}/{{ backup_bucket }}']
+
+In post-execution hooks you can get access to CARETAKER_ variables by using the ""{{ variable_name }}"" syntax shown above. Hence, "{{ local_store_directory}}" in a hook will be converted to the value of CARETAKER.LOCAL_STORE_DIRECTORY. Do not include the word "CTVARIABLE" in a post-execute hook.
+
 ## Credits
 * [A context manager for files or stdout](https://stackoverflow.com/a/17603000/349003) by Wolph.
 * [AWS CLI](https://aws.amazon.com/cli/) for interactions with AWS.
